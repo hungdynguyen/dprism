@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0f172a"><title>Expert Knowledge Replication</title><style>
+:root {
+ color-scheme:dark; --bg:#0f172a; --surface:#151f33; --surface-2:#1b2940; --surface-3:#202e46;
+ --text:#edf3fc; --muted:#a4b3c9; --faint:#71839e; --border:#334155;
+ --cyan:#57e4f5; --blue:#70a8ff; --violet:#b59cff; --green:#79e2b1;
+ --amber:#ffd181; --red:#ff8795; --code:#0a1120; --grid:#ffffff08; --deck-scale:1;
+}
+[data-theme="light"] {
+ color-scheme:light; --bg:#eef3f9; --surface:#fff; --surface-2:#f5f8fc; --surface-3:#eaf0f8;
+ --text:#172235; --muted:#4d5f77; --faint:#63758d; --border:#c9d6e5;
+ --cyan:#007d95; --blue:#245db7; --violet:#6c46c3; --green:#167a55;
+ --amber:#9a5a00; --red:#b82e44; --grid:#1a335508;
+}
+* {box-sizing:border-box}
+html,body {height:100%;margin:0;overflow:hidden}
+body {background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,"Segoe UI",sans-serif}
+button {font:inherit;cursor:pointer} button:focus-visible,a:focus-visible,pre:focus-visible {outline:2px solid var(--cyan);outline-offset:3px}
+a {color:var(--cyan)} h1,h2,h3,p {margin-top:0}
+.stage {position:fixed;inset:0 0 72px;overflow:hidden}
+.deck {position:absolute;left:50%;top:50%;width:1600px;height:900px;transform:translate(-50%,-50%) scale(var(--deck-scale));transform-origin:center;
+ overflow:hidden;background:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:34px 34px}
+.slide {position:absolute;inset:0;display:none;flex-direction:column;padding:30px 46px;overflow:hidden}
+.slide.active {display:flex}
+.topline {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.eyebrow {display:inline-flex;align-items:center;gap:9px;color:var(--cyan);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.eyebrow:before {content:"";width:20px;height:1px;background:currentColor}
+.slide-tag {color:var(--faint);font:700 12px ui-monospace,monospace;letter-spacing:.08em}
+h1 {max-width:1080px;font-size:70px;line-height:1.04;letter-spacing:-.045em;margin-bottom:24px}
+h2 {font-size:40px;line-height:1.12;letter-spacing:-.03em;margin-bottom:12px}
+h3 {font-size:21px;line-height:1.25;margin-bottom:12px}
+p {font-size:17px;line-height:1.5;color:var(--muted);margin-bottom:12px}
+.subtitle {max-width:1430px;font-size:19px;line-height:1.4;margin-bottom:20px}
+.accent {color:var(--cyan)} .violet {color:var(--violet)} .green {color:var(--green)} .amber {color:var(--amber)} .red {color:var(--red)} .faint {color:var(--faint)}
+.hero {justify-content:center} .hero h1,.hero .subtitle,.hero .meta-row,.hero .hero-kicker {position:relative;z-index:1}
+.hero-kicker {color:var(--violet);font:700 14px ui-monospace,monospace;letter-spacing:.12em;margin-bottom:20px}
+.hero-mark {position:absolute;right:6%;top:28%;width:350px;aspect-ratio:1;border:1px solid #57e4f544;border-radius:50%;opacity:.6}
+.hero-mark:before,.hero-mark:after {content:"";position:absolute;inset:12%;border:1px dashed #b59cff77;border-radius:50%;transform:rotate(35deg) scaleX(.55)}
+.hero-mark:after {transform:rotate(-35deg) scaleX(.55)}
+.mark-core {position:absolute;inset:41%;border-radius:50%;background:var(--cyan);box-shadow:0 0 55px #57e4f588}
+.meta-row {display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.pill {border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:99px;padding:10px 14px;font-size:14px}
+.pill b {color:var(--text)}
+.layout {display:grid;gap:16px;min-height:0;align-content:start}
+.cols-2 {grid-template-columns:repeat(2,minmax(0,1fr))} .cols-3 {grid-template-columns:repeat(3,minmax(0,1fr))} .cols-4 {grid-template-columns:repeat(4,minmax(0,1fr))}
+.card {border:1px solid var(--border);background:var(--surface);border-radius:16px;padding:22px;min-width:0}
+.card p:last-child {margin-bottom:0}
+.card-icon {color:var(--cyan);font:800 12px ui-monospace,monospace;letter-spacing:.08em;margin-bottom:12px}
+.callout {border-left:3px solid var(--cyan);background:#57e4f50b;border-radius:0 14px 14px 0;padding:16px 20px;color:var(--text);line-height:1.5}
+.callout strong {color:var(--cyan)}
+.bullet-list {list-style:none;padding:0;margin:12px 0 0;display:grid;gap:12px}
+.bullet-list li {position:relative;padding-left:17px;color:var(--muted);font-size:17px;line-height:1.45}
+.bullet-list li:before {content:"";width:5px;height:5px;position:absolute;left:0;top:.56em;background:var(--cyan);border-radius:50%}
+.comparison {width:100%;border-collapse:collapse;border:1px solid var(--border);background:var(--surface);font-size:17px}
+.comparison th,.comparison td {padding:18px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;line-height:1.45}
+.comparison th {color:var(--faint);font:800 12px ui-monospace,monospace;background:var(--surface-2)}
+.comparison td:first-child {color:var(--text);font-weight:700;width:23%}
+.comparison .chosen td {background:#57e4f508}
+.quote {font-size:27px;line-height:1.4;color:var(--text)} .quote em {color:var(--cyan);font-style:normal}
+.code-wrap {display:flex;flex-direction:column;min-width:0;min-height:0;border:1px solid #31405b;border-radius:14px;overflow:hidden;background:var(--code)}
+.code-head {display:flex;flex:0 0 auto;gap:12px;align-items:center;justify-content:space-between;border-bottom:1px solid #26344a;padding:10px 12px;color:#91a4c0;font:700 11px ui-monospace,monospace;letter-spacing:.04em}
+.copy-btn {background:#1c2a41;border:1px solid #3b4d69;color:#d5e2f5;border-radius:6px;padding:6px 10px;font-size:11px;flex:none}
+pre {margin:0;padding:14px 16px;overflow:auto;min-height:0;max-height:350px;color:#d6e4f7;font:12px/1.5 ui-monospace,Consolas,monospace;tab-size:2;scrollbar-width:thin;scrollbar-color:#4c6284 #0a1120}
+code {font-family:ui-monospace,Consolas,monospace}
+.k {color:#c5a7ff}.s {color:#99e3b9}.n {color:#82dff0}.c {color:#9aaac1;font-style:italic}
+.split {display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:0}
+.badge {display:inline-block;padding:5px 8px;border:1px solid var(--border);border-radius:6px;color:var(--cyan);font:700 12px ui-monospace,monospace}
+.score {font:800 38px ui-monospace,monospace;color:var(--cyan)}
+.small {font-size:14px}.spacer {flex:1;min-height:16px}
+.source-note {font-size:13px;line-height:1.4;margin:16px 0 0;color:var(--muted)}
+.technical .topline {margin-bottom:12px}
+.technical h2 {font-size:37px;margin-bottom:10px}
+.technical .subtitle {font-size:17px;margin-bottom:16px}
+.technical .card {padding:17px}
+.technical .card h3 {font-size:20px}
+.technical .card p {font-size:16px;line-height:1.45}
+.slide4-columns {display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);gap:16px;flex:1;min-height:0}
+.slide4-graph {display:grid;grid-template-rows:1.1fr 1.5fr 1.2fr 1fr;gap:8px;min-width:0;min-height:0}
+.slide4-side {display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0}
+.slide4-side > .card {flex:0 0 auto}
+.slide4-side .code-wrap {flex:1 1 0;min-height:0}
+.slide4-side pre {flex:1 1 0;min-height:0;max-height:none;overflow:auto;font-size:10px;line-height:1.4}
+.slide4-side .card p {font-size:15px}
+.work-split {grid-template-columns:.78fr 1.22fr;margin-top:16px;flex:1}
+.work-split .code-wrap pre,.schema-split .code-wrap pre {flex:1;max-height:none;font-size:12px}
+.schema-split {grid-template-columns:.9fr 1.1fr;flex:1}
+.schema-split .layout {display:flex;flex-direction:column;min-height:0}
+.schema-split .diagram {flex:1;min-height:160px}
+.diagram {display:flex;flex-direction:column;position:relative;min-width:0;min-height:0;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px 12px;overflow:hidden}
+.diagram-header {display:flex;gap:12px;justify-content:space-between;align-items:center;flex:none;color:var(--cyan);font:800 12px ui-monospace,monospace;letter-spacing:.03em}
+.diagram-note {flex:none;font-size:11px;line-height:1.35;margin:5px 0 0;color:var(--muted)}
+.diagram-art {position:relative;min-height:0;flex:1}
+.diagram .mermaid {position:absolute;inset:0;display:flex;margin:0;padding:0;width:100%;height:100%;max-height:none;overflow:hidden;background:transparent;opacity:0;pointer-events:none}
+.diagram[data-status="rendered"] .mermaid {opacity:1}
+.diagram svg {width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important}
+.diagram-fallback {height:100%;overflow:auto;padding:5px 0;scrollbar-width:thin}
+.diagram[data-status="rendered"] .diagram-fallback {display:none}
+.diagram-fallback ul {display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;list-style:none;padding:0;margin:0}
+.diagram-fallback li {font-size:12px;line-height:1.4;color:var(--muted)}
+.diagram-fallback b {color:var(--text)}
+.diagram-fallback small {font-size:11px;color:var(--cyan)}
+.diagram-fallback .fallback-info {font-size:11px;margin:0 0 6px}
+.diagram-retry {font-size:11px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:3px 6px}
+.diagram[data-status="rendered"] .diagram-retry {display:none}
+.slide > .diagram {height:270px;flex:none;margin:4px 0 18px}
+.render-stage {position:fixed;left:-100000px;top:0;pointer-events:none;overflow:hidden}
+.render-stage pre {margin:0;padding:0;max-height:none;overflow:visible}
+.footer-nav {position:fixed;z-index:10;left:0;right:0;bottom:0;height:68px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 24px;background:var(--bg);border-top:1px solid var(--border)}
+.progress-track {height:3px;position:fixed;z-index:11;bottom:68px;left:0;right:0;background:var(--border)}
+.progress-fill {height:100%;width:10%;background:linear-gradient(90deg,var(--cyan),var(--violet));transition:width .2s}
+.nav-group {display:flex;align-items:center;gap:9px}
+.nav-btn,.icon-btn {border:1px solid var(--border);color:var(--text);background:var(--surface);padding:8px 12px;border-radius:9px}
+.nav-btn:disabled {opacity:.35;cursor:default}
+.counter {color:var(--muted);font:700 12px ui-monospace,monospace;min-width:90px;text-align:center}
+.key-hint {color:var(--faint);font-size:11px}
+.modal-backdrop {position:fixed;inset:0;z-index:20;background:#030712c9;display:flex;align-items:center;justify-content:center;padding:24px}
+.modal-backdrop[hidden] {display:none}
+.modal {width:min(480px,100%);max-height:90vh;overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px}
+.shortcut-row {display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);color:var(--muted)}
+kbd {padding:4px 8px;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--surface-2);font:700 12px ui-monospace,monospace}
+.toast {position:fixed;z-index:30;bottom:82px;left:50%;transform:translateX(-50%);opacity:0;padding:9px 13px;border-radius:9px;background:var(--surface-3);border:1px solid var(--border);color:var(--text);font-size:13px;pointer-events:none}
+.toast.show {opacity:1}
+@media(max-width:600px) {.key-hint {display:none}.footer-nav {padding:0 8px}.nav-btn,.icon-btn {padding:7px}.nav-group {gap:5px}.counter {min-width:76px;font-size:10px}}
+@media(prefers-reduced-motion:reduce) {* {transition:none!important;animation:none!important}}
+</style></head><body>
+<div class="stage"><main class="deck" id="deck">
+  <section class="slide hero active" aria-label="Slide 1">
+    <div class="hero-mark" aria-hidden="true"><i class="mark-core"></i></div>
+    <div class="hero-kicker">ENGINEERING BRIEF / 01</div>
+    <h1>Hệ Thống Multi-Agent<br><span class="accent">Mô Phỏng Hội Đồng</span><br>Chuyên Gia Thẩm Định</h1>
+    <p class="subtitle">Expert Knowledge Replication System<br>Kiến trúc State Machine tất định · “Plan là dữ liệu — Graph là code” · Tổng hợp bất đồng theo giao thức Delphi</p>
+    <div class="meta-row">
+      <span class="pill"><b>Kiến trúc sư</b> · Principal AI Architect</span>
+      <span class="pill"><b>Phiên bản</b> · 1.0</span>
+      <span class="pill"><b>Tech stack</b> · LangGraph · Pydantic · Python</span>
+    </div>
+  </section>
+
+  <section class="slide" aria-label="Slide 2">
+    <div class="topline"><span class="eyebrow">Problem framing</span><span class="slide-tag">02 / CHALLENGE</span></div>
+    <h2>Tái tạo hội đồng thật,<br><span class="accent">không phải một đáp án trung bình</span></h2>
+    <p class="subtitle">Mục tiêu là mô phỏng ý kiến của đúng những chuyên gia người thật, với tri thức, phong cách và thiên kiến riêng, trên một bài toán rủi ro có cấu phần phụ thuộc nhau.</p>
+    <div class="layout cols-3" style="margin-top:16px">
+      <article class="card"><div class="card-icon">01 / TARGET</div><h3>Persona có căn cứ</h3><p>Mỗi chuyên gia có hồ sơ năng lực, phong cách lập luận và Knowledge Base (KB) riêng. Kết luận phải trích dẫn bằng chứng từ đúng nguồn tri thức được cấp.</p></article>
+      <article class="card"><div class="card-icon violet">02 / STRUCTURE</div><h3>Rủi ro theo DAG</h3><p>Các cấu phần có <code>depends_on</code>; kết quả của task nền trở thành brief có kiểm soát cho task phụ thuộc. Không thể đánh giá tùy ý thứ tự.</p></article>
+      <article class="card"><div class="card-icon amber">03 / QUALITY</div><h3>Đo được và kiểm toán được</h3><p>Giữ được ý kiến thiểu số, provenance, phiên bản prompt/KB, quyết định điều phối và lý do chuyển cấp cho con người.</p></article>
+    </div>
+    <div class="layout cols-2" style="margin-top:14px">
+      <article class="card"><h3 class="red">Single prompt / chain</h3><ul class="bullet-list"><li>Ảo giác đồng thuận (sycophancy): mô hình san phẳng quan điểm đối lập.</li><li>Ý kiến thiểu số và nguồn gốc nhận định khó truy vết.</li><li>Toàn bộ ngữ cảnh tích tụ, dễ vượt giới hạn context window.</li></ul></article>
+      <article class="card"><h3 class="amber">Chat đa agent tự do</h3><ul class="bullet-list"><li>Vòng lặp hội thoại và chi phí token khó khống chế.</li><li>Context drift: chuyên gia dần rời khỏi phạm vi chuyên môn.</li><li>Kết quả không tái lập, khó so sánh giữa các lần chạy.</li></ul></article>
+    </div>
+  </section>
+
+  <section class="slide" aria-label="Slide 3">
+    <div class="topline"><span class="eyebrow">Architecture choice</span><span class="slide-tag">03 / TRADE-OFFS</span></div>
+    <h2>Chọn cấu trúc để <span class="accent">bảo vệ tính độc lập</span></h2>
+    <p class="subtitle">Agent được tự do suy luận trong miền chuyên môn; phần điều phối, kiểm tra và chuyển trạng thái do code nắm quyền.</p>
+    <div style="overflow:auto;margin-top:15px">
+      <table class="comparison" aria-label="Bảng so sánh mô hình kiến trúc"><thead><tr><th>Mô hình</th><th>Tự do & khả năng</th><th>Rủi ro vận hành</th><th>Kiểm toán / lặp lại</th></tr></thead>
+      <tbody>
+        <tr><td>Free-form Chat<br><span class="faint small">AutoGPT, CrewAI thuần</span></td><td>Linh hoạt cao; agent tự chọn hành động và trao đổi.</td><td>Vòng lặp khó chặn, context drift, lead có thể neo ý kiến nhóm.</td><td>Thấp; khó tái lập và truy nguồn sai lệch.</td></tr>
+        <tr><td>Orchestrator–Worker động<br><span class="faint small">Lead + subagents</span></td><td>Lead chia việc linh hoạt và điều chỉnh kế hoạch khi chạy.</td><td>Subagent có thể bị neo theo lead; token có thể cao hơn chat thông thường; phụ thuộc workload; debug khó.</td><td>Trung bình; lựa chọn của lead làm kết quả biến thiên.</td></tr>
+        <tr class="chosen"><td><span class="accent">Deterministic State Machine</span><br><span class="small">LangGraph + Structured Delphi</span></td><td>Agent tự do trong task và persona hẹp; code ấn định đường đi.</td><td>Cần thiết kế schema, catalog và ngưỡng chuyển cấp rõ ràng.</td><td><strong class="green">Cao</strong>; có checkpoint, trace và cấu hình phiên bản.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="spacer"></div>
+    <div class="callout quote"><em>“Cấu trúc không làm mất đi tính thông minh của agent;</em> cấu trúc bảo vệ tính độc lập và giúp đo đạc được chuyên gia.”</div>
+  <p class="source-note">Anthropic ghi nhận khoảng 15× token so với chat trong hệ thống Research của họ; đây không phải hệ số chung cho mọi kiến trúc. <a href="https://www.anthropic.com/research/multi-agent-research-system" target="_blank" rel="noopener">Nguồn: Anthropic, 13/06/2025</a>. Tất định ở đây là luật điều phối theo state; output LLM vẫn có biến thiên.</p></section>
+
+<section class="slide technical" aria-label="Slide 4"><div class="topline"><span class="eyebrow">Control plane</span><span class="slide-tag">04 / EXPERT KNOWLEDGE REPLICATION</span></div><h2>Plan là dữ liệu. <span class="accent">Graph là code.</span></h2><p class="subtitle">DAG cấu phần và state machine thực thi là hai lớp riêng. Các điểm nối nét đứt tham chiếu cùng node, không tạo node mới.</p>
+<div class="slide4-columns">
+ <div class="slide4-graph"><div class="diagram" data-diagram="control" aria-label="Sơ đồ control"></div><div class="diagram" data-diagram="delphi" aria-label="Sơ đồ delphi"></div><div class="diagram" data-diagram="commit" aria-label="Sơ đồ commit"></div><div class="diagram" data-diagram="finish" aria-label="Sơ đồ finish"></div></div>
+ <div class="slide4-side"><article class="card"><div class="card-icon">PLAN ARTIFACT · SCHEMA 3.0.0</div><h3>Plan có phiên bản và quy tắc resolve</h3><p><code>component_defaults → overrides → validate_plan</code>. Phạm vi từng component phải được khai báo; scope rỗng bị reject.</p><p>Catalog kiểm tra expert, taxonomy, DAG, predicate, quota và giới hạn review. Plan do LLM đề xuất cần human duyệt.</p></article><div class="code-wrap"><div class="code-head"><span>FULL-CONFIG VERSIONED PLAN.JSON</span><button class="copy-btn" type="button">Copy</button></div><pre tabindex="0"><code data-language="json">{
+  &quot;plan_metadata&quot;: {
+    &quot;plan_id&quot;: &quot;plan-risk-llm-fintech-2026-v4&quot;,
+    &quot;plan_version&quot;: &quot;3.0.0&quot;,
+    &quot;source&quot;: &quot;planner:llm_propose&quot;,
+    &quot;target_system&quot;: &quot;AutoSupport-LLM-Agent (Tier 1 High-Risk)&quot;,
+    &quot;schema_version&quot;: &quot;3.0.0&quot;
+  },
+  &quot;global_execution_policies&quot;: {
+    &quot;concurrency_mode&quot;: &quot;sequential_components&quot;,
+    &quot;total_token_budget&quot;: 350000,
+    &quot;max_retries_per_node&quot;: 3,
+    &quot;on_skipped_dependency&quot;: &quot;skip&quot;,
+    &quot;on_budget_exhausted&quot;: &quot;halt_for_human&quot;
+  },
+  &quot;global_escalation_rules&quot;: {
+    &quot;rating_delta_threshold&quot;: 2,
+    &quot;confidence_minimum&quot;: 0.65,
+    &quot;escalate_on_critical&quot;: true,
+    &quot;halt_on_scope_violation&quot;: true
+  },
+  &quot;components&quot;: [
+    {
+      &quot;id&quot;: &quot;C1_prompt_security&quot;,
+      &quot;name&quot;: &quot;Rủi ro Prompt Injection &amp; Jailbreak&quot;,
+      &quot;depends_on&quot;: [],
+      &quot;coordination_pattern&quot;: &quot;independent_then_review&quot;,
+      &quot;scope_guard&quot;: {
+        &quot;allowed_taxonomies&quot;: [
+          &quot;OWASP_LLM_01&quot;,
+          &quot;INDIRECT_INJECTION&quot;
+        ],
+        &quot;strictly_forbidden_domains&quot;: [
+          &quot;COPYRIGHT_LAW&quot;
+        ],
+        &quot;require_source_citation&quot;: true
+      },
+      &quot;assignments&quot;: {
+        &quot;primaries&quot;: [
+          &quot;expert_ml_safety_dr_an&quot;,
+          &quot;expert_secops_cuong&quot;
+        ],
+        &quot;consulted&quot;: [
+          &quot;expert_redteam_ext&quot;
+        ]
+      },
+      &quot;policy_overrides&quot;: {
+        &quot;review_mode&quot;: &quot;cross_anonymous&quot;,
+        &quot;max_review_rounds&quot;: 2,
+        &quot;convergence_strategy&quot;: &quot;PESSIMISTIC_FALLBACK&quot;,
+        &quot;token_budget&quot;: 45000
+      }
+    },
+    {
+      &quot;id&quot;: &quot;C2_data_compliance&quot;,
+      &quot;name&quot;: &quot;Tuân thủ Quyền riêng tư (GDPR / Nghị định 13)&quot;,
+      &quot;depends_on&quot;: [
+        &quot;C1_prompt_security&quot;
+      ],
+      &quot;coordination_pattern&quot;: &quot;independent_then_review&quot;,
+      &quot;scope_guard&quot;: {
+        &quot;allowed_taxonomies&quot;: [
+          &quot;PII_DATA_LEAKAGE&quot;,
+          &quot;CONSENT_RETENTION&quot;
+        ],
+        &quot;strictly_forbidden_domains&quot;: [
+          &quot;INFRASTRUCTURE_DDOS&quot;
+        ],
+        &quot;require_source_citation&quot;: true
+      },
+      &quot;assignments&quot;: {
+        &quot;primaries&quot;: [
+          &quot;expert_legal_binh&quot;,
+          &quot;expert_compliance_lan&quot;
+        ],
+        &quot;consulted&quot;: []
+      },
+      &quot;policy_overrides&quot;: {
+        &quot;review_mode&quot;: &quot;cross_anonymous&quot;,
+        &quot;max_review_rounds&quot;: 1,
+        &quot;token_budget&quot;: 35000
+      }
+    },
+    {
+      &quot;id&quot;: &quot;C3_tool_misuse&quot;,
+      &quot;name&quot;: &quot;Lỗ hổng Thực thi Công cụ &amp; Function Calling&quot;,
+      &quot;depends_on&quot;: [
+        &quot;C1_prompt_security&quot;
+      ],
+      &quot;coordination_pattern&quot;: &quot;orchestrated&quot;,
+      &quot;orchestration_spec&quot;: {
+        &quot;lead_expert&quot;: &quot;expert_secops_cuong&quot;,
+        &quot;delegates&quot;: [
+          &quot;expert_infra_devops&quot;,
+          &quot;expert_database_sec&quot;
+        ],
+        &quot;max_subtasks&quot;: 3
+      },
+      &quot;assignments&quot;: {
+        &quot;primaries&quot;: [
+          &quot;expert_secops_cuong&quot;
+        ],
+        &quot;consulted&quot;: []
+      },
+      &quot;policy_overrides&quot;: {
+        &quot;review_mode&quot;: &quot;single_pass&quot;,
+        &quot;token_budget&quot;: 50000,
+        &quot;max_review_rounds&quot;: 0
+      },
+      &quot;scope_guard&quot;: {
+        &quot;allowed_taxonomies&quot;: [
+          &quot;TOOL_AUTHORIZATION&quot;,
+          &quot;FUNCTION_CALLING&quot;
+        ],
+        &quot;strictly_forbidden_domains&quot;: [
+          &quot;COPYRIGHT_LAW&quot;
+        ],
+        &quot;require_source_citation&quot;: true
+      }
+    },
+    {
+      &quot;id&quot;: &quot;C4_deep_forensics&quot;,
+      &quot;name&quot;: &quot;Kiểm toán Pháp y (Chỉ chạy khi phát hiện rủi ro cao)&quot;,
+      &quot;depends_on&quot;: [
+        &quot;C1_prompt_security&quot;,
+        &quot;C3_tool_misuse&quot;
+      ],
+      &quot;when&quot;: {
+        &quot;component&quot;: &quot;C1_prompt_security&quot;,
+        &quot;field&quot;: &quot;rating&quot;,
+        &quot;operator&quot;: &quot;IN&quot;,
+        &quot;value&quot;: [
+          &quot;HIGH&quot;,
+          &quot;CRITICAL&quot;
+        ]
+      },
+      &quot;coordination_pattern&quot;: &quot;independent_then_review&quot;,
+      &quot;assignments&quot;: {
+        &quot;primaries&quot;: [
+          &quot;expert_incident_ha&quot;,
+          &quot;expert_ml_safety_dr_an&quot;
+        ],
+        &quot;consulted&quot;: []
+      },
+      &quot;policy_overrides&quot;: {
+        &quot;review_mode&quot;: &quot;cross_anonymous&quot;,
+        &quot;max_review_rounds&quot;: 3
+      },
+      &quot;scope_guard&quot;: {
+        &quot;allowed_taxonomies&quot;: [
+          &quot;INCIDENT_FORENSICS&quot;,
+          &quot;PROMPT_ATTACK_TRACE&quot;
+        ],
+        &quot;strictly_forbidden_domains&quot;: [
+          &quot;CONTRACT_LAW&quot;
+        ],
+        &quot;require_source_citation&quot;: true
+      }
+    }
+  ],
+  &quot;component_defaults&quot;: {
+    &quot;coordination_pattern&quot;: &quot;independent_then_review&quot;,
+    &quot;assignments&quot;: {
+      &quot;primaries&quot;: [],
+      &quot;consulted&quot;: []
+    },
+    &quot;scope_guard&quot;: {
+      &quot;allowed_taxonomies&quot;: [],
+      &quot;strictly_forbidden_domains&quot;: [],
+      &quot;require_source_citation&quot;: true
+    },
+    &quot;policy&quot;: {
+      &quot;review_mode&quot;: &quot;cross_anonymous&quot;,
+      &quot;max_review_rounds&quot;: 2,
+      &quot;convergence_delta_max&quot;: 1,
+      &quot;convergence_strategy&quot;: &quot;PESSIMISTIC_FALLBACK&quot;,
+      &quot;token_budget&quot;: 45000
+    }
+  }
+}</code></pre></div></div></div></section>
+<section class="slide technical" aria-label="Slide 5"><div class="topline"><span class="eyebrow">Work orchestration</span><span class="slide-tag">05 / EXPERT KNOWLEDGE REPLICATION</span></div><h2>Một component mỗi lượt; <span class="accent">nhiều expert song song</span></h2><p class="subtitle">Chọn task PENDING có mọi dependency DONE. Fan-out chỉ diễn ra giữa các primary của component đã chọn.</p>
+<div class="layout cols-4"><article class="card"><h3>PENDING → ASSESSING</h3><p>Task đủ điều kiện; đặt trạng thái trước khi phát Send.</p></article><article class="card"><h3>REVIEWING</h3><p>Barrier đủ bài; review theo mode và giới hạn round.</p></article><article class="card"><h3>DONE / SKIPPED</h3><p>DONE có brief. SKIPPED có lý do và lan truyền tới task phụ thuộc.</p></article><article class="card"><h3>WAIT / BLOCKED</h3><p>Đang chạy: chờ. Không thể tiến tiếp: interrupt, không quay vòng bận.</p></article></div><div class="split work-split"><div class="layout"><article class="card"><div class="card-icon">STATE & ISOLATION</div><h3>Hai cấp song song</h3><p>Phiên bản hiện tại: <code>sequential_components</code>. Nâng cấp song song giữa component cần state và reducer theo component ID.</p><p><code>Send</code> mang payload riêng; worker phải tôn trọng namespace memory và quyền truy xuất. Không cấp quyền đọc draft của primary khác.</p></article><article class="card"><h3>Execution contracts</h3><p>State khởi tạo: mọi task PENDING; briefs, assessments, skip_reasons và component_tokens rỗng; spent_tokens=0. Expert catalog được nạp theo phiên bản.</p><p>Worker trả assessment theo key <code>component:expert:round</code>. Barrier đối chiếu tập expert ID, không chỉ đếm số bản ghi.</p><p>Token ledger cấp phát nguyên tử trước mỗi LLM call, bao gồm retry, consulted và delegates.</p></article></div><div class="code-wrap"><div class="code-head"><span>PYTHON · SCHEDULER KERNEL + SEND + REDUCER</span><button class="copy-btn" type="button">Copy</button></div><pre tabindex="0"><code data-language="python">from copy import deepcopy
+from typing import Annotated, TypedDict
+from langgraph.types import Send, interrupt
+
+TERMINAL = {&quot;DONE&quot;, &quot;SKIPPED&quot;}
+IN_FLIGHT = {&quot;ASSESSING&quot;, &quot;REVIEWING&quot;, &quot;SYNTHESIZING&quot;, &quot;WAITING_HUMAN&quot;}
+
+def merge_assessments(left, right):
+    merged = dict(left)
+    for key, value in right.items():
+        # key = component_id:expert_id:round; identical retries are idempotent.
+        if key in merged and merged[key] != value:
+            raise ValueError(&quot;Conflicting output for the same assessment key&quot;)
+        merged[key] = value
+    return merged
+
+class State(TypedDict):
+    plan: dict
+    experts: dict
+    status: dict
+    briefs: dict
+    spent_tokens: int
+    component_tokens: dict
+    case_id: str
+    dispatch: list
+    route: str
+    skip_reasons: dict
+    assessments: Annotated[dict, merge_assessments]
+
+def resolve_component(plan, component):
+    resolved = deepcopy(plan[&quot;component_defaults&quot;])
+    for key, value in component.items():
+        if key == &quot;policy_overrides&quot;:
+            resolved[&quot;policy&quot;].update(deepcopy(value))
+        elif key == &quot;assignments&quot;:
+            resolved[&quot;assignments&quot;].update(deepcopy(value))
+        else:
+            resolved[key] = deepcopy(value)
+    return resolved
+
+def evaluate_when(condition, briefs):
+    if condition is None:
+        return True
+    if condition[&quot;field&quot;] != &quot;rating&quot; or condition[&quot;operator&quot;] != &quot;IN&quot;:
+        raise ValueError(&quot;Unsupported predicate&quot;)
+    return briefs[condition[&quot;component&quot;]][&quot;rating&quot;] in condition[&quot;value&quot;]
+
+def schedule(state):
+    plan = state[&quot;plan&quot;]  # immutable artifact accepted by validate_plan
+    status = dict(state[&quot;status&quot;])
+    reasons = dict(state[&quot;skip_reasons&quot;])
+    components = [resolve_component(plan, c) for c in plan[&quot;components&quot;]]
+    # Propagate SKIPPED even when catalog order is not topological.
+    changed = True
+    while changed:
+        changed = False
+        for c in components:
+            if status[c[&quot;id&quot;]] != &quot;PENDING&quot;:
+                continue
+            deps = c[&quot;depends_on&quot;]
+            if not all(status[d] in TERMINAL for d in deps):
+                continue
+            skipped_parent = any(status[d] == &quot;SKIPPED&quot; for d in deps)
+            if skipped_parent or not evaluate_when(c.get(&quot;when&quot;), state[&quot;briefs&quot;]):
+                status[c[&quot;id&quot;]] = &quot;SKIPPED&quot;
+                reasons[c[&quot;id&quot;]] = &quot;dependency_skipped&quot; if skipped_parent else &quot;when_false&quot;
+                changed = True
+
+    base = {&quot;status&quot;: status, &quot;skip_reasons&quot;: reasons, &quot;dispatch&quot;: []}
+    if all(v in TERMINAL for v in status.values()):
+        return {**base, &quot;route&quot;: &quot;assemble&quot;}
+    if any(v in IN_FLIGHT for v in status.values()):
+        return {**base, &quot;route&quot;: &quot;wait&quot;}  # sequential_components
+    ready = [c for c in components
+             if status[c[&quot;id&quot;]] == &quot;PENDING&quot;
+             and all(status[d] == &quot;DONE&quot; for d in c[&quot;depends_on&quot;])]
+    if not ready:
+        return {**base, &quot;route&quot;: &quot;blocked&quot;}
+    c = ready[0]  # deterministic catalog order; one component at a time
+    global_left = plan[&quot;global_execution_policies&quot;][&quot;total_token_budget&quot;] - state[&quot;spent_tokens&quot;]
+    component_left = c[&quot;policy&quot;][&quot;token_budget&quot;] - state[&quot;component_tokens&quot;].get(c[&quot;id&quot;], 0)
+    if min(global_left, component_left) &lt;= 0:
+        return {**base, &quot;route&quot;: &quot;budget&quot;}
+    primaries = c[&quot;assignments&quot;][&quot;primaries&quot;]
+    if not primaries:
+        raise ValueError(&quot;Every component needs at least one primary&quot;)
+    upstream = {d: deepcopy(state[&quot;briefs&quot;][d]) for d in c[&quot;depends_on&quot;]}
+    payloads = []
+    for expert_id in primaries:
+        expert = state[&quot;experts&quot;][expert_id]  # trusted catalog snapshot
+        payloads.append({
+            &quot;case_id&quot;: state[&quot;case_id&quot;], &quot;component_id&quot;: c[&quot;id&quot;],
+            &quot;question&quot;: c[&quot;name&quot;], &quot;expert_id&quot;: expert_id, &quot;round&quot;: 0,
+            &quot;kb_version&quot;: expert[&quot;kb_version&quot;],
+            &quot;source_allowlist&quot;: deepcopy(expert[&quot;source_allowlist&quot;]),
+            &quot;scope_guard&quot;: deepcopy(c[&quot;scope_guard&quot;]),
+            &quot;policy&quot;: deepcopy(c[&quot;policy&quot;]),
+            &quot;coordination_pattern&quot;: c[&quot;coordination_pattern&quot;],
+            &quot;orchestration_spec&quot;: deepcopy(c.get(&quot;orchestration_spec&quot;)),
+            &quot;consulted&quot;: list(c[&quot;assignments&quot;][&quot;consulted&quot;]),
+            &quot;memory_namespace&quot;: f&#x27;{state[&quot;case_id&quot;]}:{c[&quot;id&quot;]}:{expert_id}:0&#x27;,
+            &quot;upstream&quot;: deepcopy(upstream),
+        })
+    status[c[&quot;id&quot;]] = &quot;ASSESSING&quot;
+    return {**base, &quot;status&quot;: status, &quot;route&quot;: &quot;assess&quot;, &quot;dispatch&quot;: payloads}
+
+def route_schedule(state):
+    if state[&quot;route&quot;] == &quot;assemble&quot;:
+        return &quot;assemble&quot;
+    if state[&quot;route&quot;] == &quot;assess&quot;:
+        return [Send(&quot;assess_one&quot;, payload) for payload in state[&quot;dispatch&quot;]]
+    # Durable pause, not a polling loop. Resume only after state is reconciled.
+    interrupt({&quot;reason&quot;: state[&quot;route&quot;], &quot;status&quot;: state[&quot;status&quot;]})
+    return &quot;schedule&quot;
+
+def wire_scheduler(builder):
+    builder.add_node(&quot;schedule&quot;, schedule)
+    builder.add_conditional_edges(&quot;schedule&quot;, route_schedule)
+    # assess_one and assemble are registered by the enclosing fixed graph.
+    return builder</code></pre></div></div></section>
+<section class="slide technical" aria-label="Slide 6"><div class="topline"><span class="eyebrow">Inner loop</span><span class="slide-tag">06 / EXPERT KNOWLEDGE REPLICATION</span></div><h2>Đánh giá độc lập → <span class="accent">phản biện có giới hạn</span></h2><p class="subtitle">review_mode chỉ nhận cross_anonymous hoặc single_pass. Vòng đầu không chia sẻ draft giữa các primary.</p><div class="diagram" data-diagram="review" aria-label="Sơ đồ review"></div><div class="layout cols-3"><article class="card"><div class="card-icon">FAN-OUT</div><h3>Isolation thuộc ứng dụng</h3><p>Mỗi worker có question, component, expert ID, KB/version, source allowlist, scope, round và memory namespace riêng. Tool gateway thực thi quyền truy cập.</p><p>Send hỗ trợ payload riêng; không tự tạo sandbox cho công cụ hay shared memory.</p></article><article class="card"><div class="card-icon">BOUNDED DELPHI</div><h3>Barrier và hội tụ</h3><p><code>after_assess</code> chờ đủ primary. <code>after_review</code> chờ đủ bài vòng hiện tại, tính Δ và chỉ lặp khi Δ&gt;1, còn lượt.</p><p>Ẩn danh người viết; chia sẻ rating, lý do và bằng chứng cần thiết. Bản gốc được lưu bất biến.</p></article><article class="card"><div class="card-icon">FIXED WORKER SUBGRAPH</div><h3>Consulted & orchestration</h3><p>Consulted cung cấp evidence qua truy vấn độc lập, không đọc draft primary và không có phiếu rating trong Δ.</p><p>C3 chạy subgraph cố định bên trong assess_one: lead → ≤max_subtasks delegates → gom evidence → lead assessment. Delegates chỉ nhận scope con và quyền nguồn tương ứng.</p></article></div><p class="source-note">Nguồn API: <a href="https://docs.langchain.com/oss/python/langgraph/graph-api#send" target="_blank" rel="noopener">LangGraph Send và reducers</a>. Lỗi/timeout dùng retry hữu hạn; thiếu bài không được qua barrier.</p></section>
+<section class="slide technical" aria-label="Slide 7"><div class="topline"><span class="eyebrow">Decision engine</span><span class="slide-tag">07 / EXPERT KNOWLEDGE REPLICATION</span></div><h2>Tổng hợp có cấu trúc; <span class="accent">gate kiểm tra trước phát hành</span></h2><div class="split schema-split"><div class="layout"><article class="card"><div class="card-icon">REVIEW ≠ RELEASE</div><h3>Một vị trí cho mỗi quyết định</h3><p><strong>after_assess:</strong> chọn review theo mode và số primary.</p><p><strong>after_review:</strong> Δ≤1 là hội tụ theo policy; Δ&gt;1 chỉ lặp khi còn lượt. Hết lượt vẫn giữ bất đồng.</p><p><strong>gate:</strong> sau synthesis, kiểm tra schema, scope, citation, Δ cuối, confidence và CRITICAL.</p></article><div class="diagram" data-diagram="release" aria-label="Sơ đồ release"></div><article class="card"><h3>Rating và bảo tồn bất đồng</h3><p><code>LOW=0 · MOD=1 · HIGH=2 · CRITICAL=3</code>. Với N bài mới nhất: <code>Δ=max−min</code>; với hai bài: <code>abs(rA−rB)</code>.</p><p>Chọn mức cao hơn khi có bằng chứng; thiếu bằng chứng ghi uncertainty và chuyển human. Dissent chỉ lưu một lần; brief tham chiếu ID.</p><p><code>synthesize</code> tạo brief; <code>commit</code> lưu brief đã duyệt cùng phiên bản. Human resolution lưu trace trước sửa và quyết định override ngưỡng; không bỏ qua lỗi schema/scope/citation.</p></article></div><div class="code-wrap"><div class="code-head"><span>PYDANTIC 2 · OUTPUT CONTRACT + DELTA / RELEASE RULES</span><button class="copy-btn" type="button">Copy</button></div><pre tabindex="0"><code data-language="python">from typing import Literal
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+Rating = Literal[&quot;LOW&quot;, &quot;MOD&quot;, &quot;HIGH&quot;, &quot;CRITICAL&quot;]
+SCORE = {&quot;LOW&quot;: 0, &quot;MOD&quot;: 1, &quot;HIGH&quot;: 2, &quot;CRITICAL&quot;: 3}
+
+class Contract(BaseModel):
+    model_config = ConfigDict(extra=&quot;forbid&quot;, strict=True)
+
+class Provenance(Contract):
+    expert_id: str = Field(min_length=1)
+    kb_version: str = Field(min_length=1)
+    prompt_version: str = Field(min_length=1)
+    model_snapshot: str = Field(min_length=1)
+
+class Evidence(Contract):
+    evidence_id: str = Field(min_length=1)
+    source_id: str = Field(min_length=1)
+    source_version: str = Field(min_length=1)
+    locator: str = Field(min_length=1)
+    excerpt: str = Field(min_length=1)
+    sha256: str = Field(pattern=r&quot;^[a-f0-9]{64}$&quot;)
+
+class Finding(Contract):
+    finding_id: str = Field(min_length=1)
+    claim: str = Field(min_length=1)
+    scope_tag: str = Field(min_length=1)
+    evidence_ids: list[str] = Field(min_length=1)
+    author_expert_ids: list[str] = Field(min_length=1)
+
+class FindingSet(Contract):
+    key_findings: list[Finding] = Field(min_length=1)
+    evidence_cited: list[Evidence] = Field(min_length=1)
+
+    @model_validator(mode=&quot;after&quot;)
+    def check_references(self):
+        ids = [e.evidence_id for e in self.evidence_cited]
+        finding_ids = [f.finding_id for f in self.key_findings]
+        if len(ids) != len(set(ids)) or len(finding_ids) != len(set(finding_ids)):
+            raise ValueError(&quot;Duplicate evidence or finding IDs&quot;)
+        if any(not set(f.evidence_ids) &lt;= set(ids) for f in self.key_findings):
+            raise ValueError(&quot;Finding references unknown evidence&quot;)
+        return self
+
+class Assessment(FindingSet):
+    component_id: str = Field(min_length=1)
+    round: int = Field(ge=0)
+    provenance: Provenance
+    rating: Rating
+    rationale: str = Field(min_length=1)
+    confidence: float = Field(ge=0, le=1)
+
+class Disagreement(Contract):
+    disagreement_id: str = Field(min_length=1)
+    aspect: str = Field(min_length=1)
+    expert_a_id: str = Field(min_length=1)
+    expert_a_view: str = Field(min_length=1)
+    expert_b_id: str = Field(min_length=1)
+    expert_b_view: str = Field(min_length=1)
+    resolution_note: str = Field(min_length=1)
+    status: Literal[&quot;RESOLVED&quot;, &quot;UNRESOLVED&quot;]
+
+class UpstreamBrief(Contract):
+    component_id: str = Field(min_length=1)
+    brief_version: int = Field(ge=1)
+    rating: Rating
+    conclusion: str = Field(min_length=1, max_length=1000)
+    finding_ids: list[str]
+    evidence_ids: list[str]
+    uncertainties: list[str]
+    dissent_ids: list[str]
+    provenance: list[Provenance] = Field(min_length=1)
+
+class Synthesis(FindingSet):
+    component_id: str = Field(min_length=1)
+    rating: Rating
+    confidence: float = Field(ge=0, le=1)
+    rationale: str = Field(min_length=1)
+    disagreements: list[Disagreement]
+    # IDs of unresolved disagreements; views are stored once, above.
+    dissenting_views: list[str]
+    upstream_brief: UpstreamBrief
+
+    @model_validator(mode=&quot;after&quot;)
+    def check_brief_and_dissent(self):
+        b = self.upstream_brief
+        if (b.component_id, b.rating) != (self.component_id, self.rating):
+            raise ValueError(&quot;Brief and synthesis disagree&quot;)
+        ids = [d.disagreement_id for d in self.disagreements]
+        if len(ids) != len(set(ids)):
+            raise ValueError(&quot;Duplicate disagreement IDs&quot;)
+        unresolved = {d.disagreement_id for d in self.disagreements
+                      if d.status == &quot;UNRESOLVED&quot;}
+        if set(self.dissenting_views) != unresolved or set(b.dissent_ids) != unresolved:
+            raise ValueError(&quot;Unresolved dissent must be preserved&quot;)
+        if set(b.finding_ids) != {f.finding_id for f in self.key_findings}:
+            raise ValueError(&quot;Brief finding index is incomplete&quot;)
+        if set(b.evidence_ids) != {e.evidence_id for e in self.evidence_cited}:
+            raise ValueError(&quot;Brief evidence index is incomplete&quot;)
+        authors = {p.expert_id for p in b.provenance}
+        if any(not set(f.author_expert_ids) &lt;= authors for f in self.key_findings):
+            raise ValueError(&quot;Missing finding provenance&quot;)
+        if any(d.expert_a_id not in authors or d.expert_b_id not in authors
+               for d in self.disagreements):
+            raise ValueError(&quot;Missing dissent provenance&quot;)
+        return self
+
+def rating_delta(latest_assessments):
+    values = [SCORE[a.rating] for a in latest_assessments]
+    if not values:
+        raise ValueError(&quot;No assessments: barrier must block&quot;)
+    return max(values) - min(values)  # one primary: 0; two: abs(rA-rB)
+
+def release_reasons(synthesis, latest_assessments, rules):
+    reasons = []
+    if rating_delta(latest_assessments) &gt;= rules[&quot;rating_delta_threshold&quot;]:
+        reasons.append(&quot;rating_delta&quot;)
+    if synthesis.confidence &lt; rules[&quot;confidence_minimum&quot;]:
+        reasons.append(&quot;low_confidence&quot;)
+    if rules[&quot;escalate_on_critical&quot;] and synthesis.rating == &quot;CRITICAL&quot;:
+        reasons.append(&quot;critical&quot;)
+    return reasons</code></pre></div></div></section>
+<section class="slide technical" aria-label="Slide 8"><div class="topline"><span class="eyebrow">Context engineering</span><span class="slide-tag">08 / EXPERT KNOWLEDGE REPLICATION</span></div><h2>Brief có cấu trúc; <span class="accent">hai biên kiểm soát rõ ràng</span></h2><p class="subtitle">Downstream chỉ nhận brief đã commit của dependency DONE, cùng nguồn được phép truy xuất; không nhận toàn bộ lịch sử chat.</p><div class="diagram" data-diagram="scope" aria-label="Sơ đồ scope"></div><div class="layout cols-3"><article class="card"><div class="card-icon">TRƯỚC EXPERT</div><h3>Input access guard</h3><p>Kiểm tra expert identity, namespace memory, quyền nguồn và phiên bản KB. Brief mang rating, conclusion, finding/evidence IDs, uncertainty và provenance.</p><p>Không loại toàn bộ brief khác domain: legal có thể cần kết luận security. Quyền đọc bằng chứng tách khỏi phạm vi được phép phát biểu.</p></article><article class="card"><div class="card-icon">SAU ASSESSMENT / SYNTHESIS</div><h3>Output contract guard</h3><p>Code kiểm tra từng finding.scope_tag thuộc whitelist và không thuộc denylist; đối chiếu evidence ID, locator, version, hash, excerpt và ACL với kho nguồn đáng tin.</p><p>Failure chặn synthesis/commit; retry hữu hạn hoặc human interrupt theo policy. Không dùng LLM quyết định pass/fail của contract.</p></article><article class="card"><div class="card-icon">SEMANTIC QUALITY</div><h3>Giới hạn bảo đảm</h3><p>Nhãn scope hợp lệ và trích dẫn tồn tại không chứng minh claim đúng hay suy luận được nguồn hỗ trợ.</p><p>Chất lượng ngữ nghĩa được đánh giá riêng qua cross-review, benchmark và human review. Guard bảo đảm contract và integrity trong phạm vi code kiểm tra.</p></article></div></section>
+  <section class="slide" aria-label="Slide 9">
+    <div class="topline"><span class="eyebrow">Evaluation science</span><span class="slide-tag">09 / BENCHMARK</span></div>
+    <h2>Đo mức tái tạo so với<br><span class="accent">hội đồng chuyên gia thật</span></h2>
+    <p class="subtitle">Ground truth được thu thập độc lập. Đánh giá ở cấp cá nhân và hội đồng, kèm độ bất định và phân tích sai lệch theo loại rủi ro.</p>
+    <div class="layout cols-4" style="margin-top:12px">
+      <article class="card"><div class="card-icon">AGREEMENT</div><div class="score">ρ / %</div><h3>Spearman & độ khớp</h3><p>Báo cáo tương quan thứ hạng cùng tỷ lệ trùng rating và sai lệch ordinal; tương quan cao chưa đủ chứng minh đồng thuận.</p></article>
+      <article class="card"><div class="card-icon violet">CALIBRATION</div><div class="score">Δ</div><h3>Khoảng cách & độ tin cậy</h3><p>Ma trận nhầm lẫn ordinal, sai số tuyệt đối, calibration của confidence và tỷ lệ escalation.</p></article>
+      <article class="card"><div class="card-icon amber">EVIDENCE</div><div class="score">E₂E</div><h3>Evidence sensitivity</h3><p>Thay đổi rating hợp lý khi thêm, bỏ hoặc đảo bằng chứng; kiểm tra khả năng trích dẫn chính xác.</p></article>
+      <article class="card"><div class="card-icon green">REPEATABILITY</div><div class="score">σ</div><h3>Ổn định qua lần chạy</h3><p>Độ biến thiên theo seed, model snapshot, prompt, KB và cấu hình điều phối được khóa phiên bản.</p></article>
+    </div>
+    <div class="layout cols-3" style="margin-top:14px">
+      <article class="card"><h3>Ablation A</h3><p><span class="badge">persona KB riêng</span> so với <span class="badge">prompt persona chung</span>. Đo khác biệt về độ khớp, bằng chứng và phong cách.</p></article>
+      <article class="card"><h3>Ablation B</h3><p><span class="badge">Delphi có phản biện</span> so với <span class="badge">trung bình đơn giản</span>. Đo giảm lỗi lớn và bảo toàn ý kiến thiểu số.</p></article>
+      <article class="card"><h3>Protocol</h3><p>Chia tập theo case, blinded rating, báo cáo khoảng tin cậy/bootstrap và phân tích theo domain. Không rò rỉ ground truth vào KB.</p></article>
+    </div>
+  </section>
+
+<section class="slide technical" aria-label="Slide 10"><div class="topline"><span class="eyebrow">Roadmap</span><span class="slide-tag">10 / EXPERT KNOWLEDGE REPLICATION</span></div><h2>Mở rộng năng lực, <span class="accent">giữ contract đã chốt</span></h2><p class="subtitle">Hiện có: component tuần tự, expert song song, predicate IN trên rating, SKIPPED lan truyền và review hữu hạn.</p><div class="layout cols-3"><article class="card"><div class="card-icon">01 · ROADMAP</div><h3>Song song giữa component</h3><p>Đưa component độc lập vào subgraph riêng. Tách status, brief, ledger và reducer theo component ID; giới hạn concurrency, retry và tổng quota.</p><p>Giữ thứ tự assemble ổn định dù thời điểm hoàn tất khác nhau.</p></article><article class="card"><div class="card-icon">02 · ROADMAP</div><h3>Mở rộng predicate có kiểu</h3><p>Contract hiện tại dùng component + field + operator + value. Tương lai thêm AND/OR, so sánh confidence và kiểm tra kiểu; không cho Plan chứa code thực thi.</p><div class="code-wrap"><div class="code-head"><span>ĐÃ HỖ TRỢ · PREDICATE IN</span><button class="copy-btn" type="button">Copy</button></div><pre tabindex="0"><code data-language="json">{
+  &quot;when&quot;: {
+    &quot;component&quot;: &quot;C1_prompt_security&quot;,
+    &quot;field&quot;: &quot;rating&quot;,
+    &quot;operator&quot;: &quot;IN&quot;,
+    &quot;value&quot;: [
+      &quot;HIGH&quot;,
+      &quot;CRITICAL&quot;
+    ]
+  }
+}</code></pre></div></article><article class="card"><div class="card-icon">03 · ROADMAP</div><h3>Stale invalidation</h3><p>Khi kết quả cha thay đổi, duyệt index dependency → dependents để đánh dấu descendants STALE, kể cả component từng SKIPPED.</p><p>Hủy brief cũ khỏi active snapshot, đánh giá lại when và đưa task về PENDING. Giữ lịch sử, phiên bản, diff và quyết định human.</p></article></div><div class="spacer"></div><div class="callout quote">Tự do chuyên môn trong từng worker; <em>quyền điều phối và phát hành kết quả thuộc contract có thể kiểm toán.</em></div></section>
+</main></div>
+
+<div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress"></div></div>
+<footer class="footer-nav" aria-label="Điều hướng trình chiếu">
+ <div class="nav-group"><button class="icon-btn" id="themeBtn" type="button" aria-label="Đổi giao diện">◐</button><span class="key-hint">? trợ giúp</span></div>
+ <div class="nav-group"><button class="nav-btn" id="prevBtn" type="button">← Previous</button><span class="counter" id="counter" aria-live="polite">Slide 1 / 10</span><button class="nav-btn" id="nextBtn" type="button">Next →</button></div>
+ <div class="nav-group"><button class="icon-btn" id="fullscreenBtn" type="button" aria-label="Toàn màn hình">⛶ <span class="key-hint">F</span></button><button class="icon-btn" id="helpBtn" type="button" aria-label="Trợ giúp phím tắt">?</button></div>
+</footer>
+<div class="modal-backdrop" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
+ <div class="modal"><div class="topline"><h3 id="helpTitle">Phím tắt trình chiếu</h3><button class="icon-btn" id="closeHelp" type="button" aria-label="Đóng trợ giúp">×</button></div>
+ <div class="shortcut-row"><span>Slide kế tiếp</span><span><kbd>→</kbd> / <kbd>Space</kbd></span></div>
+ <div class="shortcut-row"><span>Slide trước</span><kbd>←</kbd></div>
+ <div class="shortcut-row"><span>Đầu / cuối</span><span><kbd>Home</kbd> / <kbd>End</kbd></span></div>
+ <div class="shortcut-row"><span>Toàn màn hình</span><kbd>F</kbd></div>
+ <div class="shortcut-row"><span>Hiện / ẩn trợ giúp</span><kbd>?</kbd></div>
+ <div class="shortcut-row"><span>Đóng hộp thoại</span><kbd>Esc</kbd></div>
+ <p class="source-note">Khi focus ở khối code, phím cuộn giữ nguyên chức năng đọc code. Deck tự co theo tỷ lệ 16:9.</p>
+ </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="application/json" id="diagramCatalog">{"control": {"title": "01 · CONTROL PLANE", "nodes": [{"id": "intake", "label": "intake\nNạp hồ sơ", "portal": false}, {"id": "plan", "label": "plan\nTemplate / LLM", "portal": false}, {"id": "validate_plan", "label": "validate_plan\nDAG + resolved config", "portal": false}, {"id": "approve_plan", "label": "approve_plan\nHuman duyệt", "portal": false}, {"id": "next", "label": "② schedule", "portal": true}], "edges": [{"from": "intake", "to": "plan", "label": ""}, {"from": "plan", "to": "validate_plan", "label": ""}, {"from": "validate_plan", "to": "approve_plan", "label": "LLM đề xuất"}, {"from": "validate_plan", "to": "next", "label": "Template đã duyệt"}, {"from": "approve_plan", "to": "next", "label": "Approved"}], "note": "Plan không hợp lệ bị reject; human có thể yêu cầu sửa hoặc hủy. Chỉ Plan hợp lệ, được duyệt mới đi tiếp."}, "delphi": {"title": "02 · ĐIỀU PHỐI & DELPHI", "nodes": [{"id": "schedule", "label": "schedule", "portal": false}, {"id": "assess_one", "label": "assess_one\nSend × primaries", "portal": false}, {"id": "after_assess", "label": "after_assess\nBarrier", "portal": false}, {"id": "review_one", "label": "review_one\nẨn danh", "portal": false}, {"id": "after_review", "label": "after_review\nDelta + round", "portal": false}, {"id": "next", "label": "③ synthesize", "portal": true}], "edges": [{"from": "schedule", "to": "assess_one", "label": "READY"}, {"from": "assess_one", "to": "after_assess", "label": ""}, {"from": "after_assess", "to": "review_one", "label": "cross_anonymous, ≥2"}, {"from": "after_assess", "to": "next", "label": "single_pass / 1 primary"}, {"from": "review_one", "to": "after_review", "label": ""}, {"from": "after_review", "to": "review_one", "label": "Δ > 1, còn lượt"}, {"from": "after_review", "to": "next", "label": "Δ ≤ 1 / hết lượt"}], "note": "round=0 là đánh giá gốc. Review dùng round=1…max_review_rounds; mỗi vòng có barrier theo component, expert và round."}, "commit": {"title": "03 · SYNTHESIS & RELEASE GATE", "nodes": [{"id": "synthesize", "label": "synthesize\nRating + dissent + brief", "portal": false}, {"id": "gate", "label": "gate\nCode validation", "portal": false}, {"id": "human_resolve", "label": "human_resolve\nInterrupt tại chỗ", "portal": false}, {"id": "commit", "label": "commit\nLưu DONE + brief", "portal": false}, {"id": "next", "label": "② schedule", "portal": true}], "edges": [{"from": "synthesize", "to": "gate", "label": ""}, {"from": "gate", "to": "commit", "label": "Pass"}, {"from": "gate", "to": "human_resolve", "label": "Escalation / vi phạm"}, {"from": "human_resolve", "to": "commit", "label": "Đạt contract + quyết định human"}, {"from": "commit", "to": "next", "label": ""}], "note": "Escalate khi Δ cuối ≥2, confidence \u003c0.65 hoặc CRITICAL. Human có thể duyệt ngoại lệ các ngưỡng này với lý do và audit; schema/scope/citation vẫn phải đạt. Hủy nếu không thể xử lý."}, "finish": {"title": "04 · TERMINAL STATES", "nodes": [{"id": "schedule", "label": "② schedule", "portal": true}, {"id": "assemble", "label": "assemble\nDONE + lý do SKIPPED", "portal": false}, {"id": "final_review", "label": "final_review\nNgười thẩm định ký", "portal": false}, {"id": "end", "label": "END\nCheckpoint", "portal": false}], "edges": [{"from": "schedule", "to": "assemble", "label": "Tất cả DONE / SKIPPED"}, {"from": "assemble", "to": "final_review", "label": ""}, {"from": "final_review", "to": "end", "label": "Approved"}], "note": "when=false → SKIPPED; dependency SKIPPED → skip lan truyền. Chưa terminal, không READY và không in-flight → BLOCKED + human interrupt."}, "review": {"title": "DELPHI · BLIND ASSESSMENT → BOUNDED REVIEW", "nodes": [{"id": "send", "label": "Send\nPayload riêng", "portal": false}, {"id": "a", "label": "Expert A\nassess_one", "portal": false}, {"id": "b", "label": "Expert B\nassess_one", "portal": false}, {"id": "barrier", "label": "after_assess\nĐủ expert_ids", "portal": false}, {"id": "review", "label": "review_one\ncross_anonymous", "portal": false}, {"id": "after", "label": "after_review\nĐộ lệch + round", "portal": false}, {"id": "synth", "label": "synthesize", "portal": false}], "edges": [{"from": "send", "to": "a", "label": ""}, {"from": "send", "to": "b", "label": ""}, {"from": "a", "to": "barrier", "label": ""}, {"from": "b", "to": "barrier", "label": ""}, {"from": "barrier", "to": "review", "label": "≥2 primaries + cross_anonymous"}, {"from": "barrier", "to": "synth", "label": "single_pass / 1 primary"}, {"from": "review", "to": "after", "label": ""}, {"from": "after", "to": "review", "label": "Δ>1 và còn lượt"}, {"from": "after", "to": "synth", "label": "Hội tụ / hết lượt"}], "note": "Hai expert là ví dụ. Với N expert: Δ = max(rating_score) − min(rating_score); thiếu kết quả không được đi qua barrier."}, "release": {"title": "RELEASE GATE · SAU SYNTHESIS", "nodes": [{"id": "s", "label": "Synthesis\n+ latest assessments", "portal": false}, {"id": "g", "label": "gate\nCode", "portal": false}, {"id": "h", "label": "Human resolve\nSửa / hủy", "portal": false}, {"id": "c", "label": "commit\nDONE + brief", "portal": false}], "edges": [{"from": "s", "to": "g", "label": ""}, {"from": "g", "to": "c", "label": "Tất cả kiểm tra đạt"}, {"from": "g", "to": "h", "label": "Δ≥2 / critical / low confidence"}, {"from": "h", "to": "c", "label": "Đạt contract + quyết định human"}], "note": "gate không mở lại Delphi. Human lưu actor, thời điểm, lý do, phiên bản kết quả và ngưỡng được override; giữ nguyên dissent. Contract lỗi phải sửa rồi kiểm tra lại."}, "scope": {"title": "CONTEXT & VALIDATION BOUNDARIES", "nodes": [{"id": "b", "label": "Committed briefs", "portal": false}, {"id": "i", "label": "Input guard\nACL + source allowlist", "portal": false}, {"id": "e", "label": "Expert\nKB theo persona", "portal": false}, {"id": "o", "label": "Assessment JSON", "portal": false}, {"id": "v", "label": "Output guard\nTaxonomy + citation", "portal": false}, {"id": "s", "label": "Synthesize", "portal": false}], "edges": [{"from": "b", "to": "i", "label": ""}, {"from": "i", "to": "e", "label": "Pass"}, {"from": "e", "to": "o", "label": ""}, {"from": "o", "to": "v", "label": ""}, {"from": "v", "to": "s", "label": "Pass"}], "note": "Lỗi input/output → chặn phát hành, log lý do, retry hữu hạn hoặc human interrupt. Tính đúng của suy luận cần đánh giá ngữ nghĩa riêng."}}</script>
+<script>
+(() => {
+  "use strict";
+  const slides = [...document.querySelectorAll("#deck > .slide")];
+  const stage = document.querySelector(".stage");
+  const deck = document.getElementById("deck");
+  const footer = document.querySelector(".footer-nav");
+  const counter = document.getElementById("counter");
+  const progress = document.getElementById("progress");
+  const prev = document.getElementById("prevBtn");
+  const next = document.getElementById("nextBtn");
+  const modal = document.getElementById("helpModal");
+  const media = matchMedia("(prefers-color-scheme: light)");
+  const charts = JSON.parse(document.getElementById("diagramCatalog").textContent);
+  const hosts = [...document.querySelectorAll("[data-diagram]")];
+  const mermaidURL = "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js";
+  let current = 0, themeRevision = 0, configuredRevision = -1;
+  let renderRequested = false, renderRunning = false, mermaidReady = false;
+  let loader = null, toastTimer, previousFocus = null;
+  const storage = {
+    get(key) { try { return localStorage.getItem(key); } catch (_) { return null; } },
+    set(key, value) { try { localStorage.setItem(key, value); } catch (_) { /* session theme still works */ } }
+  };
+  let themeOverride = storage.get("ekr-theme");
+  if (!["light", "dark"].includes(themeOverride)) themeOverride = null;
+
+  function sourceFor(chart) {
+    const quote = text => '"' + text.replace(/"/g, "'").replace(/\n/g, "<br/>") + '"';
+    const lines = ["flowchart LR"];
+    for (const n of chart.nodes) {
+      lines.push("  n_" + n.id + (n.portal ? "([" : "[") + quote(n.label) + (n.portal ? "])" : "]"));
+    }
+    for (const e of chart.edges) {
+      lines.push("  n_" + e.from + " -->" + (e.label ? "|" + quote(e.label) + "|" : "") + " n_" + e.to);
+    }
+    const portals = chart.nodes.filter(n => n.portal).map(n => "n_" + n.id);
+    if (portals.length) {
+      lines.push("  classDef portal stroke-dasharray:5 4;");
+      lines.push("  class " + portals.join(",") + " portal;");
+    }
+    return lines.join("\n");
+  }
+  function mountDiagram(host) {
+    const chart = charts[host.dataset.diagram];
+    const header = document.createElement("div");
+    header.className = "diagram-header";
+    const title = document.createElement("span");
+    title.textContent = chart.title;
+    const retry = document.createElement("button");
+    retry.className = "diagram-retry";
+    retry.type = "button";
+    retry.textContent = "Vẽ lại";
+    retry.setAttribute("aria-label", "Thử vẽ lại " + chart.title);
+    retry.addEventListener("click", () => {
+      delete host.dataset.failedRevision;
+      if (!mermaidReady) loadMermaid();
+      else renderActiveMermaid();
+    });
+    header.append(title, retry);
+    const art = document.createElement("div");
+    art.className = "diagram-art";
+    const target = document.createElement("pre");
+    target.className = "mermaid";
+    target.setAttribute("aria-hidden", "true");
+    const fallback = document.createElement("div");
+    fallback.className = "diagram-fallback";
+    fallback.tabIndex = 0;
+    const info = document.createElement("p");
+    info.className = "fallback-info";
+    info.textContent = "Bản văn bản của cùng sơ đồ · Mermaid cần tải thư viện qua mạng.";
+    const list = document.createElement("ul");
+    const labels = Object.fromEntries(chart.nodes.map(n => [n.id, n.label.replace(/\n/g, " · ")]));
+    for (const edge of chart.edges) {
+      const row = document.createElement("li");
+      const from = document.createElement("b");
+      const to = document.createElement("b");
+      from.textContent = labels[edge.from];
+      to.textContent = labels[edge.to];
+      row.append(from, document.createTextNode(" → "), to);
+      if (edge.label) {
+        const condition = document.createElement("small");
+        condition.textContent = " [" + edge.label + "]";
+        row.append(condition);
+      }
+      list.append(row);
+    }
+    fallback.append(info, list);
+    art.append(target, fallback);
+    const note = document.createElement("p");
+    note.className = "diagram-note";
+    note.textContent = chart.note;
+    host.append(header, art, note);
+    host.dataset.status = "fallback";
+    host.dataset.source = sourceFor(chart);
+  }
+
+  function mermaidConfig() {
+    const light = document.documentElement.dataset.theme === "light";
+    return {
+      startOnLoad: false, securityLevel: "strict", theme: "base",
+      flowchart: {curve:"linear", htmlLabels:true, useMaxWidth:false,
+                  nodeSpacing:14, rankSpacing:20, padding:8, diagramPadding:5},
+      themeVariables: {
+        fontFamily:"Inter, Segoe UI, system-ui, sans-serif", fontSize:"17px",
+        background:light?"#ffffff":"#151f33",
+        primaryColor:light?"#eaf0f8":"#1b2940",
+        primaryTextColor:light?"#172235":"#edf3fc",
+        primaryBorderColor:light?"#007d95":"#57e4f5",
+        lineColor:light?"#245db7":"#70a8ff",
+        secondaryColor:light?"#f5f8fc":"#202e46",
+        tertiaryColor:light?"#ffffff":"#151f33",
+        edgeLabelBackground:light?"#ffffff":"#151f33"
+      }
+    };
+  }
+
+  // One render queue. Only a visible slide schedules work. Each render uses a
+  // measured offscreen surface so switching slides cannot collapse its layout.
+  function renderActiveMermaid() {
+    renderRequested = true;
+    if (!renderRunning && mermaidReady) void drainRenderQueue();
+  }
+  async function drainRenderQueue() {
+    if (renderRunning || !mermaidReady) return;
+    renderRunning = true;
+    try {
+      while (renderRequested) {
+        renderRequested = false;
+        const active = slides[current];
+        const revision = themeRevision;
+        if (configuredRevision !== revision) {
+          window.mermaid.initialize(mermaidConfig());
+          configuredRevision = revision;
+        }
+        const pending = [...active.querySelectorAll("[data-diagram]")].filter(
+          h => h.dataset.renderedRevision !== String(revision) &&
+               h.dataset.failedRevision !== String(revision));
+        for (const host of pending) {
+          if (active !== slides[current] || revision !== themeRevision) {
+            renderRequested = true;
+            break;
+          }
+          const art = host.querySelector(".diagram-art");
+          const surface = document.createElement("div");
+          surface.className = "render-stage";
+          surface.style.width = Math.max(1, art.clientWidth) + "px";
+          surface.style.height = Math.max(1, art.clientHeight) + "px";
+          const scratch = document.createElement("pre");
+          scratch.className = "mermaid";
+          scratch.textContent = host.dataset.source;
+          surface.append(scratch);
+          document.body.append(surface);
+          try {
+            await window.mermaid.run({nodes:[scratch], suppressErrors:false});
+            if (revision !== themeRevision) { renderRequested = true; continue; }
+            const svg = scratch.querySelector("svg");
+            if (!svg) throw new Error("Mermaid returned no SVG");
+            svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+            svg.setAttribute("role", "img");
+            svg.setAttribute("aria-label", charts[host.dataset.diagram].title);
+            const target = host.querySelector(".mermaid");
+            target.replaceChildren(svg);
+            target.removeAttribute("aria-hidden");
+            host.dataset.renderedRevision = String(revision);
+            host.dataset.status = "rendered";
+          } catch (error) {
+            if (revision === themeRevision) {
+              host.dataset.failedRevision = String(revision);
+              host.dataset.status = "fallback";
+              host.querySelector(".fallback-info").textContent =
+                "Sơ đồ chưa vẽ được; các node và điều kiện đầy đủ ở dưới. Có thể chọn Vẽ lại.";
+            }
+            console.error("Diagram render:", host.dataset.diagram, error);
+          } finally {
+            surface.remove();
+          }
+        }
+      }
+    } finally {
+      renderRunning = false;
+      if (renderRequested && mermaidReady) void drainRenderQueue();
+    }
+  }
+  function refreshMermaidTheme() {
+    themeRevision++;
+    for (const host of hosts) {
+      host.dataset.status = "fallback";
+      delete host.dataset.failedRevision;
+      delete host.dataset.renderedRevision;
+      host.querySelector(".mermaid").replaceChildren();
+    }
+    renderActiveMermaid();
+  }
+  function setTheme(theme, persist = true) {
+    document.documentElement.dataset.theme = theme;
+    document.getElementById("themeBtn").setAttribute("aria-label",
+      theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối");
+    document.querySelector('meta[name="theme-color"]').content = theme === "dark" ? "#0f172a" : "#eef3f9";
+    if (persist) { themeOverride = theme; storage.set("ekr-theme", theme); }
+    refreshMermaidTheme();
+  }
+  function fitDeck() {
+    const scale = Math.min(stage.clientWidth / 1600, stage.clientHeight / 900);
+    document.documentElement.style.setProperty("--deck-scale", String(scale));
+  }
+  function show(n) {
+    current = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((slide, i) => {
+      slide.classList.toggle("active", i === current);
+      slide.setAttribute("aria-hidden", String(i !== current));
+      slide.inert = i !== current;
+    });
+    counter.textContent = "Slide " + (current + 1) + " / " + slides.length;
+    progress.style.width = ((current + 1) / slides.length * 100) + "%";
+    prev.disabled = current === 0;
+    next.disabled = current === slides.length - 1;
+    document.title = (current + 1) + "/" + slides.length + " · Expert Knowledge Replication";
+    requestAnimationFrame(renderActiveMermaid);
+  }
+  function setHelp(open) {
+    if (open === !modal.hidden) return;
+    modal.hidden = !open;
+    deck.inert = open;
+    footer.inert = open;
+    if (open) {
+      previousFocus = document.activeElement;
+      document.getElementById("closeHelp").focus();
+    } else if (previousFocus?.isConnected) {
+      previousFocus.focus();
+    }
+  }
+  function toast(message) {
+    const box = document.getElementById("toast");
+    box.textContent = message;
+    box.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => box.classList.remove("show"), 1800);
+  }
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch (_) { toast("Trình duyệt không cho phép fullscreen trong phiên này."); }
+  }
+  function highlightCode(element) {
+    const text = element.textContent;
+    const language = element.dataset.language;
+    const tokens = /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|#[^\n]*|\b(?:from|import|class|def|return|if|elif|else|for|in|not|and|or|while|raise|True|False|None|any|all|with|as)\b|\b\d+(?:\.\d+)?\b)/g;
+    const fragment = document.createDocumentFragment();
+    let offset = 0;
+    for (const match of text.matchAll(tokens)) {
+      fragment.append(document.createTextNode(text.slice(offset, match.index)));
+      const span = document.createElement("span");
+      span.textContent = match[0];
+      span.className = /^["']/.test(match[0]) ? "s" :
+        match[0].startsWith("#") && language === "python" ? "c" :
+        /^\d/.test(match[0]) ? "n" : "k";
+      fragment.append(span);
+      offset = match.index + match[0].length;
+    }
+    fragment.append(document.createTextNode(text.slice(offset)));
+    element.replaceChildren(fragment);
+  }
+  async function copyCode(button) {
+    const text = button.closest(".code-wrap").querySelector("code").textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (_) {
+      const focus = document.activeElement;
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.style.cssText = "position:fixed;left:-10000px;top:0";
+      document.body.append(area);
+      area.select();
+      let copied = false;
+      try { copied = document.execCommand("copy"); } catch (_) { copied = false; }
+      area.remove();
+      focus?.focus();
+      if (!copied) { toast("Không sao chép tự động được. Hãy chọn nội dung code để sao chép."); return; }
+    }
+    toast("Đã sao chép toàn bộ khối code.");
+  }
+  function loadMermaid() {
+    if (loader || mermaidReady) return;
+    const script = document.createElement("script");
+    loader = script;
+    script.src = mermaidURL;
+    script.async = true;
+    script.onload = () => {
+      loader = null;
+      mermaidReady = Boolean(window.mermaid);
+      if (mermaidReady) {
+        hosts.forEach(h => delete h.dataset.failedRevision);
+        renderActiveMermaid();
+      }
+    };
+    script.onerror = () => {
+      loader = null;
+      script.remove();
+      hosts.forEach(h => {
+        h.querySelector(".fallback-info").textContent =
+          "Không tải được Mermaid qua CDN. Bản văn bản dưới đây giữ nguyên node và điều kiện; kết nối mạng rồi chọn Vẽ lại.";
+      });
+    };
+    document.head.append(script);
+  }
+
+  hosts.forEach(mountDiagram);
+  document.querySelectorAll("code[data-language]").forEach(highlightCode);
+  document.querySelectorAll(".copy-btn").forEach(b => b.addEventListener("click", () => copyCode(b)));
+  prev.addEventListener("click", () => show(current - 1));
+  next.addEventListener("click", () => show(current + 1));
+  document.getElementById("themeBtn").addEventListener("click", () =>
+    setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
+  document.getElementById("fullscreenBtn").addEventListener("click", toggleFullscreen);
+  document.getElementById("helpBtn").addEventListener("click", () => setHelp(true));
+  document.getElementById("closeHelp").addEventListener("click", () => setHelp(false));
+  modal.addEventListener("click", e => { if (e.target === modal) setHelp(false); });
+  document.addEventListener("keydown", event => {
+    if (!modal.hidden) {
+      if (event.key === "Escape" || event.key === "?") { event.preventDefault(); setHelp(false); }
+      else if (event.key === "Tab") {
+        const focusable = [...modal.querySelectorAll('button,a[href],input,[tabindex="0"]')];
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+      return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    const target = event.target;
+    if (target.closest("input,textarea,select,[contenteditable=true]")) return;
+    // Preserve native keyboard behavior for buttons, links and scrollable code.
+    if (target.closest("button,a,pre,.diagram-fallback") &&
+        [" ", "ArrowLeft", "ArrowRight", "Home", "End", "PageDown", "PageUp"].includes(event.key)) return;
+    if (["ArrowRight", " ", "PageDown"].includes(event.key)) { event.preventDefault(); show(current + 1); }
+    else if (["ArrowLeft", "PageUp"].includes(event.key)) { event.preventDefault(); show(current - 1); }
+    else if (event.key === "Home") { event.preventDefault(); show(0); }
+    else if (event.key === "End") { event.preventDefault(); show(slides.length - 1); }
+    else if (event.key.toLowerCase() === "f") { event.preventDefault(); toggleFullscreen(); }
+    else if (event.key === "?") { event.preventDefault(); setHelp(true); }
+  });
+  media.addEventListener?.("change", event => {
+    if (!themeOverride) setTheme(event.matches ? "light" : "dark", false);
+  });
+  window.addEventListener("resize", fitDeck);
+  document.addEventListener("fullscreenchange", fitDeck);
+  setTheme(themeOverride || (media.matches ? "light" : "dark"), false);
+  fitDeck();
+  show(0);
+  loadMermaid();
+})();
+</script></body></html>
