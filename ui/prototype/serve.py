@@ -10,7 +10,7 @@ args = parser.parse_args()
 root = Path(__file__).resolve().parent
 handler = partial(SimpleHTTPRequestHandler, directory=str(root))
 server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
-print(f"DPrism frontend prototype: http://127.0.0.1:{args.port}/?variant=A", flush=True)
+print(f"DPrism frontend prototype: http://127.0.0.1:{args.port}/", flush=True)
 try:
     server.serve_forever()
 except KeyboardInterrupt:
