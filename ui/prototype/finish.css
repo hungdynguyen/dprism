@@ -154,7 +154,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid #40
 .discussion-option .welcome-features .icon{color:#a55218;}
 .welcome-option .welcome-features span{display:block;font-size:12px;color:#596575;line-height:1.5;margin:0;}
 .welcome-cta{margin-top:15px;justify-content:center;width:100%;gap:12px;min-height:40px;font-size:13px;}
-.discussion-option .welcome-cta{background:#bd5d19;border-color:#bd5d19;}
+.discussion-option .welcome-cta{background:#ad5218;border-color:#ad5218;}
 .discussion-option .welcome-cta:hover{background:#a24e14;border-color:#a24e14;}
 .workbench-welcome .workspace-note{justify-content:center;margin-top:22px;font-size:12px;}
 @media(max-width:620px){.workbench-welcome{max-width:440px;padding-top:15px;}.workbench-welcome h1{font-size:30px;}.workbench-welcome .welcome-intro p{font-size:17px;}.welcome-options{gap:17px;}.welcome-option{padding:23px;min-height:375px;}.welcome-option+.welcome-option{border:1px solid #e1e5eb;}.welcome-option h2{font-size:23px;}.welcome-cta{min-height:44px;}.welcome-forward{width:40px;height:40px;}}
