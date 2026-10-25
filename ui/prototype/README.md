@@ -76,3 +76,30 @@ Timed-flow verification: a controlled clock confirmed task commits at 00:03, 00:
 A separate real-timer JavaScript run completed a one-task plan in 3.02 seconds and opened the dashboard automatically. This verifies timer behavior, not rendered browser geometry.
 
 Argument-map/chat verification: the baseline four-task run produces four finding nodes and one dissent node, selecting/filtering works, and the report remains accessible. Both chat entry points, a single selected expert, delayed reply, separate conversation histories and resuming from My cases were exercised with a controlled clock and a minimal DOM stub. New script assets are served successfully. Visual verification in a real browser remains pending.
+
+## UX corrections and visual direction — 2026-10-26
+
+This revision implements the user-authorized UX review findings. It remains a throwaway frontend; no database or model integration was introduced.
+
+- Each case has its own in-memory draft. New cases start with empty subject/context and do not inherit the previous case's documents. A public case is carried forward only when explicitly selected for reuse. **Dùng hồ sơ mẫu** loads the consistent AutoSupport fixture deliberately.
+- Going back from plan design to related cases keeps plan edits. A new proposal is generated only once, or through the explicit regenerate action with a replacement explanation.
+- Browser Back/Forward use history entries with draft/run/chat references. Drafts are restored from memory. Finishing a run replaces its running route with the results route. Reload is still a reset, not production persistence.
+- Expert edit forms keep drafts while navigating away. Explicit Cancel discards those edits; Save clears the edit draft.
+- Task deletion explains downstream dependencies and preserves missing links as validation errors. Undo restores the removed task while retaining other task edits. Missing links can be removed explicitly.
+- Template review includes visible required case name, objective and output fields; optional document/context controls do not require the four-step wizard. Validation lists errors, selects the affected task and associates messages with form controls.
+- Uploaded files have explicit readable-text versus metadata-only states and can be removed from case/task context.
+- Case history separates Cases, Shared cases and Direct conversations. Existing expert conversations resume; **Mới** starts another explicitly.
+- Structured disagreements about mitigation priorities now appear even when expert ratings match. The example includes both the C1 rating difference and C3 mitigation-priority disagreement. Older verification above describes the earlier five-node version; the current sample has six nodes.
+- Narrow layouts use DAG/details/case-info tabs and map/details/participants tabs. A task/argument picker offers another way to reach items. Graphs start at a readable zoom and can be fitted explicitly; keyboard focus pans an off-screen node into view.
+
+Visual direction from `ui-ux-pro-max`: **Minimalism & Swiss Style**, with the grid and type hierarchy of **Swiss Modernism 2.0**, adapted to a business workbench. The brand red is retained. `finish.css` applies the selected treatment on top of the prototype's base rules:
+
+- Neutral surfaces, a restrained red action color, status colors only where meaningful.
+- Flat panels and table-like history rows; fewer decorative badges, gradients and large shadows.
+- Direct labels and short instructions instead of promotional headlines.
+- Primary body/form text at 14–16px, readable node titles and a more consistent spacing/radius scale.
+- Focus indicators, inline errors, visible draft feedback and recovery actions.
+
+Regression verification used the existing frontend code in an isolated JavaScript context: plan round-trip, draft separation, context reset, browser-history restoration, task deletion/undo, expert drafts, required inputs, guided validation, 12-second simulated run, same-rating disagreement, chat continuation and isolated conversations passed. Key text/CTA pairs were calculated at 5.84:1–6.70:1. JavaScript syntax and CSS brace checks pass.
+
+Visual QA limitation: the in-app browser provider is unavailable; the subsequent attempt to inspect the existing local Edge window ended with **Computer Use app approval timed out**. Responsive geometry, clipping and animation still need real-browser verification; the automated checks above do not claim to establish those.
