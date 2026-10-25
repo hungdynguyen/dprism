@@ -58,12 +58,12 @@ function renderDirectPicker(){
       <div class="expert-picker-domain"><label class="screen-reader" for="direct-expert-domain">Lọc theo lĩnh vực</label><select id="direct-expert-domain" data-field="directExpertDomain"><option value="all">Tất cả lĩnh vực</option>${domains.map(d=>`<option value="${esc(d)}" ${domain===d?'selected':''}>${esc(d)}</option>`).join('')}</select></div>
     </div>
     <div class="expert-picker-result"><span role="status">${list.length} chuyên gia${list.length!==experts.length?' phù hợp':''}</span><span>Mỗi cuộc trao đổi gồm một chuyên gia</span></div>
-    <fieldset class="expert-choice-grid"><legend class="screen-reader">Chọn một chuyên gia AI để trao đổi riêng</legend>${list.map(e=>`<label class="expert-choice ${selected?.id===e.id?'is-selected':''}">
-      <span class="expert-choice-top">${mark(e)}<input id="direct-expert-${esc(e.id)}" type="radio" name="direct-expert" data-direct-expert value="${esc(e.id)}" ${selected?.id===e.id?'checked':''} aria-labelledby="direct-name-${esc(e.id)}" aria-describedby="direct-approach-${esc(e.id)}"></span>
-      <span class="expert-choice-domain">${esc(e.domain)}</span><strong class="expert-choice-name" id="direct-name-${esc(e.id)}">${esc(e.role)}</strong>
-      <span class="expert-choice-approach" id="direct-approach-${esc(e.id)}">${esc(e.approach)}</span>
-      <span class="expert-choice-skills">${e.skills.map(s=>`<span>${esc(s)}</span>`).join('')||'<span>Chuyên môn theo hồ sơ expert</span>'}</span>
-      <span class="expert-choice-state">${selected?.id===e.id?ico('check')+' Đã chọn':'Chọn chuyên gia '+ico('arrow')}</span>
+    <fieldset class="expert-picker-grid"><legend class="screen-reader">Chọn một chuyên gia AI để trao đổi riêng</legend>${list.map(e=>`<label class="expert-picker-card ${selected?.id===e.id?'is-selected':''}">
+      <span class="expert-picker-card-top">${mark(e)}<input id="direct-expert-${esc(e.id)}" type="radio" name="direct-expert" data-direct-expert value="${esc(e.id)}" ${selected?.id===e.id?'checked':''} aria-labelledby="direct-name-${esc(e.id)}" aria-describedby="direct-approach-${esc(e.id)}"></span>
+      <span class="expert-picker-card-domain">${esc(e.domain)}</span><strong class="expert-picker-card-name" id="direct-name-${esc(e.id)}">${esc(e.role)}</strong>
+      <span class="expert-picker-card-approach" id="direct-approach-${esc(e.id)}">${esc(e.approach)}</span>
+      <span class="expert-picker-card-skills">${e.skills.map(s=>`<span>${esc(s)}</span>`).join('')||'<span>Chuyên môn theo hồ sơ expert</span>'}</span>
+      <span class="expert-picker-card-state">${selected?.id===e.id?ico('check')+' Đã chọn':'Chọn chuyên gia '+ico('arrow')}</span>
     </label>`).join('')||`<div class="expert-picker-empty">${ico('search')}<h2>Chưa tìm thấy chuyên gia phù hợp</h2><p>Thử tên, kỹ năng khác hoặc xem lại tất cả lĩnh vực.</p>${btn('Xóa bộ lọc','clear-direct-filters')}</div>`}</fieldset>
     <footer class="expert-picker-footer"><div class="expert-picker-selection" aria-live="polite">${selected?`${mark(selected)}<span><strong>${esc(selected.role)}</strong><small>${esc(selected.domain)} · Đã chọn 1 chuyên gia</small></span>`:`<span class="expert-picker-idle-icon">${ico('chat')}</span><span><strong>Chưa chọn chuyên gia</strong><small>Chọn một chuyên gia ở phía trên.</small></span>`}</div>${btn('Bắt đầu trao đổi '+ico('arrow'),'begin-direct-chat','primary',selected?'':'disabled')}</footer>
     <p class="expert-picker-footnote">Phản hồi mô phỏng · Nội dung chỉ được giữ trong phiên trình duyệt này.</p>
