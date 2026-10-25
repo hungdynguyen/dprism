@@ -42,7 +42,10 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid #40
 .welcome-option{display:flex;align-items:flex-start;gap:22px;text-align:left;padding:35px 30px;min-height:235px;}
 .welcome-option+.welcome-option{border-left:1px solid var(--line);}
 .welcome-option:hover{background:#fafbfc;}
-.welcome-option-index{font:12px/1.6 Consolas,monospace;color:#87909b;}
+.welcome-choice-icon{width:52px;height:52px;flex:0 0 52px;display:inline-flex;align-items:center;justify-content:center;border-radius:11px;margin-top:2px;}
+.welcome-choice-icon .icon{width:28px;height:28px;stroke-width:1.6;}
+.expert-choice{background:#f9e9ee;color:#b51f3d;}
+.discussion-choice{background:#fff1e4;color:#b36221;}
 .welcome-option>div{flex:1;}
 .welcome-option h2{font-size:22px;line-height:1.45;color:#202b38;}
 .welcome-option p{font-size:14px;color:#596575;line-height:1.8;margin-top:15px;}
