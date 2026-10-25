@@ -128,3 +128,33 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid #40
   .direct-chat-layout{grid-template-columns:1fr;}.direct-chat-header{flex-basis:117px;}.direct-chat-header .btn{font-size:12px;min-height:34px;}.direct-chat-header .eyebrow,.chat-fixture-notice{font-size:12px;}.direct-chat-header h1{font-size:20px;}.chat-messages{padding:18px;}.chat-message-text{font-size:15px;}.direct-composer textarea{font-size:16px;}.direct-composer>.between>span{font-size:12px;}.direct-composer{padding:12px 15px;}.chat-suggestions button{font-size:13px;}.direct-chat-context{display:none;}.context-demo-row{flex-wrap:wrap;gap:8px;}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}
+
+/* Welcome: stacked content in two independent cards, following the reference. */
+.workbench-welcome{max-width:820px;padding-top:30px;}
+.workbench-welcome .welcome-intro{text-align:center;margin-bottom:30px;}
+.workbench-welcome h1{font-size:34px;letter-spacing:-.7px;margin:0 0 8px;}
+.workbench-welcome .welcome-intro p{font-size:18px;color:#253249;margin:0;}
+.welcome-subtitle{display:block;font-size:13px;color:#657386;margin-top:9px;}
+.welcome-options{gap:20px;border:0;border-radius:0;background:transparent;overflow:visible;align-items:stretch;}
+.welcome-option{display:flex;flex-direction:column;align-items:stretch;gap:0;padding:24px;min-height:400px;border:1px solid #e1e5eb;border-radius:10px;background:#fff;}
+.welcome-option+.welcome-option{border:1px solid #e1e5eb;}
+.welcome-option:hover{background:white;border-color:#c7ced8;}
+.welcome-option>div{flex:0 0 auto;}
+.welcome-option-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;}
+.welcome-choice-icon{width:44px;height:44px;flex:0 0 44px;border-radius:9px;margin:0;}
+.welcome-choice-icon .icon{width:26px;height:26px;}
+.welcome-forward{height:34px;width:34px;border-radius:50%;display:grid;place-items:center;background:#fff0f3;color:#b51f3d;}
+.welcome-forward .icon{width:17px;height:17px;}
+.discussion-option .welcome-forward{background:#fff3e7;color:#a55218;}
+.welcome-option h2{font-size:24px;line-height:1.25;letter-spacing:-.55px;margin:0 0 9px;}
+.welcome-option>p{font-size:14px;color:#596575;line-height:1.6;margin:0 0 17px;}
+.welcome-features{display:flex;flex-direction:column;gap:0;padding:7px 10px;margin-top:auto;border:1px solid #edf0f4;border-radius:7px;background:#fafbfc;}
+.welcome-features>div{display:flex;align-items:center;gap:9px;min-height:33px;padding:4px 0;}
+.welcome-features .icon{flex:0 0 17px;width:17px;height:17px;color:#b51f3d;}
+.discussion-option .welcome-features .icon{color:#a55218;}
+.welcome-option .welcome-features span{display:block;font-size:12px;color:#596575;line-height:1.5;margin:0;}
+.welcome-cta{margin-top:15px;justify-content:center;width:100%;gap:12px;min-height:40px;font-size:13px;}
+.discussion-option .welcome-cta{background:#bd5d19;border-color:#bd5d19;}
+.discussion-option .welcome-cta:hover{background:#a24e14;border-color:#a24e14;}
+.workbench-welcome .workspace-note{justify-content:center;margin-top:22px;font-size:12px;}
+@media(max-width:620px){.workbench-welcome{max-width:440px;padding-top:15px;}.workbench-welcome h1{font-size:30px;}.workbench-welcome .welcome-intro p{font-size:17px;}.welcome-options{gap:17px;}.welcome-option{padding:23px;min-height:375px;}.welcome-option+.welcome-option{border:1px solid #e1e5eb;}.welcome-option h2{font-size:23px;}.welcome-cta{min-height:44px;}.welcome-forward{width:40px;height:40px;}}
