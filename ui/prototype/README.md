@@ -114,3 +114,11 @@ Visual QA limitation: the in-app browser provider is unavailable; the subsequent
 - Pending named cases, configured plan drafts and direct conversations remain in memory only. The extra templates are fixtures for reviewing the catalog interaction, not validated production workflows.
 
 Verification: isolated JavaScript smoke checks passed for the name dialog, blank-name rejection, three method choices, accent-insensitive search, empty results, pagination, pending drafts, template review shortcut, open-case isolation and direct-chat naming. Syntax checks and local asset delivery were checked separately. Real-browser visual QA remains subject to the limitation above.
+
+## Expert picker redesign — 2026-10-26
+
+The user requested a better direct-exchange expert selection screen. This revision replaces the narrow radio list and oversized summary panel with a full-width directory: three columns on desktop, two on tablet and one on phones. Cards show a role icon, domain, approach, skills and explicit selected state. No photographs or personal identities are required.
+
+Search covers role, domain, approach and skills with accent-insensitive matching. A domain filter, clear actions and empty results are available. A compact sticky footer shows the selected expert and Start action, including when filtering hides that expert. Selection remains exclusive. Existing return destinations and named-case chat behavior are preserved. Obsolete picker CSS was removed, including the layout affected by the global full-width input rule; new radio controls have an explicit 18px size.
+
+Chrome DevTools became available for this revision. The picker was visually inspected at desktop 1366×768 and phone 375×812. Layout measurements at 375, 768, 1024 and 1440px showed no horizontal overflow and an 18px radio control. Browser interactions passed for search, category filtering, empty results, clearing filters, exclusive selection, filtered selection retention, keyboard arrow navigation with focus restoration, and opening the correct named conversation. These checks apply to the picker; they do not replace pending visual QA for the other prototype screens.

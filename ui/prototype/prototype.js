@@ -56,7 +56,7 @@ const state = {
   scenario:'complete',run:null,sessions:[],showState:false,expertQuery:'',expertDomain:'all',caseQuery:'',caseTab:'mine',hasDraft:false,validation:'',
   dagView:{zoom:1,x:0,y:0,auto:true},expertId:null,expertDraft:null,expertEditing:false,
   dashboardView:'map',argumentId:null,feedExpert:'',feedFilter:'all',argumentView:{zoom:1,x:0,y:0,auto:true},
-  chats:[],chatId:null,chatDrafts:{},directExpertId:null,directExpertQuery:'',chatReturn:'templates'
+  chats:[],chatId:null,chatDrafts:{},directExpertId:null,directExpertQuery:'',directExpertDomain:'all',chatReturn:'templates'
 };
 function isPlanEditor(){return state.page==='setup'&&(state.wizard===3||state.mode==='template'&&state.wizard===4);}
 const expertById = id => experts.find(e=>e.id===id);
@@ -298,6 +298,7 @@ document.addEventListener('input',event=>{const e=event.target;if(e.hasAttribute
 document.addEventListener('change',async event=>{
   const e=event.target;
   if(e.hasAttribute('data-direct-expert')){state.directExpertId=e.value;render();}
+  if(e.dataset.field==='directExpertDomain'){state.directExpertDomain=e.value;render();}
   if(e.dataset.stepList){const s=stepById(state.selectedStep),key=e.dataset.stepList;s[key]=e.checked?[...s[key],e.value]:s[key].filter(x=>x!==e.value);if(key==='experts'&&s.experts.length>1&&s.rounds===0)s.rounds=1;state.validation=state.showValidation?validatePlan():'';render();}
   if(e.dataset.stepField)render();
   if(e.dataset.field&&isPlanEditor())render();

@@ -44,8 +44,30 @@ function syncArgumentMap(){
 }
 function zoomArguments(factor){const viewport=$('#argument-viewport');if(!viewport)return;const v=state.argumentView,old=v.zoom,next=Math.max(.2,Math.min(2,old*factor));v.x=viewport.clientWidth/2-(viewport.clientWidth/2-v.x)*next/old;v.y=viewport.clientHeight/2-(viewport.clientHeight/2-v.y)*next/old;v.zoom=next;v.auto=false;syncArgumentMap();}
 function renderDirectPicker(){
-  const list=experts.filter(e=>(e.role+' '+e.domain).toLowerCase().includes(state.directExpertQuery.toLowerCase()));
-  return `${backButton(state.chatReturn||'templates',state.chatReturn==='experts'?'Quay lại danh sách expert':'Quay lại tạo case')}${heading('DIRECT EXCHANGE','Bạn muốn trao đổi với chuyên gia nào?','Chọn đúng một expert. Cuộc trao đổi này không cần template hoặc plan.')}<div class="direct-picker-layout"><section><div class="search-box section-title">${ico('search')}<input id="direct-expert-search" data-field="directExpertQuery" value="${esc(state.directExpertQuery)}" placeholder="Tìm chuyên gia…" aria-label="Tìm chuyên gia để trao đổi"></div><div class="direct-expert-list">${list.map(e=>`<label class="direct-expert-option ${state.directExpertId===e.id?'selected':''}"><input type="radio" name="direct-expert" data-direct-expert value="${e.id}" ${state.directExpertId===e.id?'checked':''}>${avatar(e)}<span><strong>${esc(e.role)}</strong><small>${esc(e.domain)} · ${esc(e.approach)}</small></span></label>`).join('')||'<div class="empty">Không tìm thấy expert.</div>'}</div></section><aside class="card direct-picker-summary">${state.directExpertId?(()=>{const e=expertById(state.directExpertId);return `<div class="eyebrow">EXPERT ĐÃ CHỌN</div>${avatar(e)}<h2>${esc(e.role)}</h2><p>${esc(e.approach)}</p><div class="row wrap">${e.skills.map(s=>badge(s)).join('')}</div>`;})():`<span class="avatar">${ico('chat')}</span><h2>Một cuộc trao đổi, một chuyên gia.</h2><p>Chọn expert phù hợp với điều bạn muốn làm rõ.</p>`}<div class="notice">Đây là prototype frontend. Tin nhắn và câu trả lời mẫu chỉ được giữ trong phiên này.</div>${btn('Bắt đầu trao đổi '+ico('arrow'),'begin-direct-chat','primary',state.directExpertId?'':'disabled')}</aside></div>`;
+  const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[đĐ]/g,'d').toLowerCase();
+  const words=normalize(state.directExpertQuery).trim().split(/\s+/).filter(Boolean),domain=state.directExpertDomain||'all';
+  const list=experts.filter(e=>(domain==='all'||e.domain===domain)&&words.every(word=>normalize([e.role,e.domain,e.approach,...e.skills].join(' ')).includes(word)));
+  const selected=expertById(state.directExpertId),domains=[...new Set(experts.map(e=>e.domain))];
+  const icons={safety:'shield',security:'settings',legal:'file',operations:'graph',synthesizer:'book'};
+  const mark=e=>`<span class="expert-role-mark ${esc(e.id)}">${ico(icons[e.id]||'expert')}</span>`;
+  return `<section class="expert-picker">
+    ${backButton(state.chatReturn||'templates',state.chatReturn==='experts'?'Quay lại danh sách expert':'Quay lại tạo case')}
+    <header class="expert-picker-heading"><div class="eyebrow">Trao đổi riêng</div><h1>Chọn chuyên gia</h1><p>Xem chuyên môn và cách tiếp cận trước khi bắt đầu cuộc trao đổi.</p>${state.chatReturn==='templates'&&state.creationSession?`<div class="expert-picker-case">${ico('file')}<span>${esc(state.creationSession.title)}</span></div>`:''}</header>
+    <div class="expert-picker-tools">
+      <div class="expert-picker-search"><label class="screen-reader" for="direct-expert-search">Tìm theo tên, chuyên môn hoặc kỹ năng</label>${ico('search')}<input id="direct-expert-search" data-field="directExpertQuery" value="${esc(state.directExpertQuery)}" placeholder="Tìm theo tên, chuyên môn hoặc kỹ năng…" autocomplete="off">${state.directExpertQuery?`<button data-action="clear-direct-query" class="expert-search-clear" aria-label="Xóa từ khóa tìm kiếm">${ico('close')}</button>`:''}</div>
+      <div class="expert-picker-domain"><label class="screen-reader" for="direct-expert-domain">Lọc theo lĩnh vực</label><select id="direct-expert-domain" data-field="directExpertDomain"><option value="all">Tất cả lĩnh vực</option>${domains.map(d=>`<option value="${esc(d)}" ${domain===d?'selected':''}>${esc(d)}</option>`).join('')}</select></div>
+    </div>
+    <div class="expert-picker-result"><span role="status">${list.length} chuyên gia${list.length!==experts.length?' phù hợp':''}</span><span>Mỗi cuộc trao đổi gồm một chuyên gia</span></div>
+    <fieldset class="expert-choice-grid"><legend class="screen-reader">Chọn một chuyên gia AI để trao đổi riêng</legend>${list.map(e=>`<label class="expert-choice ${selected?.id===e.id?'is-selected':''}">
+      <span class="expert-choice-top">${mark(e)}<input id="direct-expert-${esc(e.id)}" type="radio" name="direct-expert" data-direct-expert value="${esc(e.id)}" ${selected?.id===e.id?'checked':''} aria-labelledby="direct-name-${esc(e.id)}" aria-describedby="direct-approach-${esc(e.id)}"></span>
+      <span class="expert-choice-domain">${esc(e.domain)}</span><strong class="expert-choice-name" id="direct-name-${esc(e.id)}">${esc(e.role)}</strong>
+      <span class="expert-choice-approach" id="direct-approach-${esc(e.id)}">${esc(e.approach)}</span>
+      <span class="expert-choice-skills">${e.skills.map(s=>`<span>${esc(s)}</span>`).join('')||'<span>Chuyên môn theo hồ sơ expert</span>'}</span>
+      <span class="expert-choice-state">${selected?.id===e.id?ico('check')+' Đã chọn':'Chọn chuyên gia '+ico('arrow')}</span>
+    </label>`).join('')||`<div class="expert-picker-empty">${ico('search')}<h2>Chưa tìm thấy chuyên gia phù hợp</h2><p>Thử tên, kỹ năng khác hoặc xem lại tất cả lĩnh vực.</p>${btn('Xóa bộ lọc','clear-direct-filters')}</div>`}</fieldset>
+    <footer class="expert-picker-footer"><div class="expert-picker-selection" aria-live="polite">${selected?`${mark(selected)}<span><strong>${esc(selected.role)}</strong><small>${esc(selected.domain)} · Đã chọn 1 chuyên gia</small></span>`:`<span class="expert-picker-idle-icon">${ico('chat')}</span><span><strong>Chưa chọn chuyên gia</strong><small>Chọn một chuyên gia ở phía trên.</small></span>`}</div>${btn('Bắt đầu trao đổi '+ico('arrow'),'begin-direct-chat','primary',selected?'':'disabled')}</footer>
+    <p class="expert-picker-footnote">Phản hồi mô phỏng · Nội dung chỉ được giữ trong phiên trình duyệt này.</p>
+  </section>`;
 }
 function beginDirectChat(id,returnPage){
   const expert=expertById(id);if(!expert){toast('Chọn một expert trước.');return;}
@@ -74,7 +96,9 @@ function renderDirectChatCaseCards(){
 function handleDiscussionAction(button){
   const action=button.dataset.action,id=button.dataset.id;
   if(action==='direct-chat'){state.chatReturn=button.dataset.from||'experts';beginDirectChat(id,state.chatReturn);return true;}
-  if(action==='choose-direct-expert'){state.chatReturn=button.dataset.from||'templates';state.directExpertId=null;state.directExpertQuery='';go('direct-picker');return true;}
+  if(action==='choose-direct-expert'){state.chatReturn=button.dataset.from||'templates';state.directExpertId=null;state.directExpertQuery='';state.directExpertDomain='all';go('direct-picker');return true;}
+  if(action==='clear-direct-query'){state.directExpertQuery='';render();$('#direct-expert-search')?.focus();return true;}
+  if(action==='clear-direct-filters'){state.directExpertQuery='';state.directExpertDomain='all';render();$('#direct-expert-search')?.focus();return true;}
   if(action==='begin-direct-chat'){beginDirectChat(state.directExpertId,state.chatReturn);return true;}
   if(action==='resume-direct-chat'){state.chatId=id;go('chat');return true;}
   if(action==='chat-suggestion'){state.chatDrafts[state.chatId]=button.dataset.text;render();$('#direct-message')?.focus();return true;}

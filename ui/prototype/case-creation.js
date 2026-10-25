@@ -82,7 +82,7 @@ function handleCaseCreationAction(button){
     if(!state.creationSession){openCaseNameModal();return true;}
     if(button.dataset.method==='template'){$('#template-library')?.scrollIntoView?.({behavior:'smooth',block:'start'});$('#template-search')?.focus?.({preventScroll:true});}
     if(button.dataset.method==='open')startNew('open');
-    if(button.dataset.method==='direct'){state.chatReturn='templates';state.directExpertId=null;state.directExpertQuery='';go('direct-picker');}
+    if(button.dataset.method==='direct'){state.chatReturn='templates';state.directExpertId=null;state.directExpertQuery='';state.directExpertDomain='all';go('direct-picker');}
     return true;
   }
   if(action==='use-template'&&!state.creationSession){openCaseNameModal();return true;}
