@@ -26,8 +26,8 @@ openExpert=function(id,editing=false){
   saveExpertEdit();state.expertId=id||null;state.expertEditing=editing||!id;
   state.expertDraft=clone(state.expertEditing&&state.expertEdits[id||'new']?state.expertEdits[id||'new']:id?expertById(id):{role:'',domain:'AI & Data',approach:'',prompt:'',skills:[]});go('expert');
 };
-function navSnapshot(){return {page:state.page,draftId:state.activeDraftId,wizard:state.wizard,expertId:state.expertId,expertEditing:state.expertEditing,runId:state.run?.id,chatId:state.chatId,dashboardView:state.dashboardView,chatReturn:state.chatReturn};}
-function navHash(nav){return '#/'+nav.page+(nav.page==='setup'?'/'+nav.draftId+'/'+nav.wizard:nav.page==='expert'?'/'+(nav.expertId||'new')+'/'+(nav.expertEditing?'edit':'view'):['running','dashboard'].includes(nav.page)?'/'+nav.runId+(nav.page==='dashboard'?'/'+nav.dashboardView:''):nav.page==='chat'?'/'+nav.chatId:'');}
+function navSnapshot(){return {page:state.page,creationId:state.creationSession?.id,draftId:state.activeDraftId,wizard:state.wizard,expertId:state.expertId,expertEditing:state.expertEditing,runId:state.run?.id,chatId:state.chatId,dashboardView:state.dashboardView,chatReturn:state.chatReturn};}
+function navHash(nav){return '#/'+nav.page+(nav.page==='setup'?'/'+nav.draftId+'/'+nav.wizard:nav.page==='templates'&&nav.creationId?'/'+nav.creationId:nav.page==='expert'?'/'+(nav.expertId||'new')+'/'+(nav.expertEditing?'edit':'view'):['running','dashboard'].includes(nav.page)?'/'+nav.runId+(nav.page==='dashboard'?'/'+nav.dashboardView:''):nav.page==='chat'?'/'+nav.chatId:'');}
 let restoringRoute=false,lastRoute=null;
 function recordRoute(replace=false){
   if(restoringRoute)return;const nav=navSnapshot(),hash=navHash(nav);if(lastRoute===hash)return;
@@ -37,6 +37,7 @@ function recordRoute(replace=false){
 go=function(page){saveActiveDraft();saveExpertEdit();state.page=page;state.validation='';state.showValidation=false;state.validationErrors=[];render();window.scrollTo(0,0);};
 window.addEventListener('popstate',event=>{
   saveActiveDraft();saveExpertEdit();const nav=event.state?.dprism?event.state.nav:{page:'home'};restoringRoute=true;
+  if(nav.creationId)state.creationSession=state.creationSessions?.find(c=>c.id===nav.creationId)||null;
   if(nav.page==='setup'){
     const draft=state.drafts.find(d=>d.id===nav.draftId);
     if(draft){for(const key of draftFields)state[key]=clone(draft[key]);state.activeDraftId=draft.id;state.hasDraft=true;state.wizard=nav.wizard;state.page='setup';}else state.page='cases';
@@ -107,7 +108,7 @@ function handleWorkspaceAction(button){
     state.wizard=Math.min(4,state.wizard+1);state.validation='';state.showValidation=false;render();window.scrollTo(0,0);return true;
   }
   if(a==='start'){if(!validateAndFocus())return true;state.workspaceTab='graph';return false;}
-  if(a==='load-demo'){state.title=demoCaseInput.title;state.star=clone(demoCaseInput.star);state.discussionDocs=clone(demoCaseInput.discussionDocs);if(!state.output)state.output='Bảng rủi ro, bằng chứng, bất đồng và biện pháp giảm thiểu.';state.sampleCase=true;render();toast('Đã nạp hồ sơ mẫu cho case này.');return true;}
+  if(a==='load-demo'){state.title=state.title||demoCaseInput.title;state.star=clone(demoCaseInput.star);state.discussionDocs=clone(demoCaseInput.discussionDocs);if(!state.output)state.output='Bảng rủi ro, bằng chứng, bất đồng và biện pháp giảm thiểu.';state.sampleCase=true;render();toast('Đã nạp hồ sơ mẫu cho case này.');return true;}
   if(a==='focus-error'){focusValidation(Number(button.dataset.index));return true;}
   if(a==='workspace-tab'){if(button.dataset.kind==='board')state.boardTab=button.dataset.tab;else state.workspaceTab=button.dataset.tab;render();return true;}
   if(a==='edit-case-context'){templateInputsModal('context');return true;}

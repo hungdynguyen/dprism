@@ -64,7 +64,7 @@ function directFixtureReply(chat,text){
 }
 function sendDirectMessage(){
   const chat=currentDirectChat(),text=(state.chatDrafts[chat?.id]||'').trim();if(!chat||chat.pending||!text)return;
-  chat.messages.push({role:'user',text});if(chat.messages.filter(m=>m.role==='user').length===1)chat.title=text.slice(0,65);state.chatDrafts[chat.id]='';chat.pending=true;render();
+  chat.messages.push({role:'user',text});if(!chat.namedCase&&chat.messages.filter(m=>m.role==='user').length===1)chat.title=text.slice(0,65);state.chatDrafts[chat.id]='';chat.pending=true;render();
   directChatTimers.set(chat.id,setTimeout(()=>{chat.messages.push({role:'assistant',text:directFixtureReply(chat,text),fixture:true});chat.pending=false;directChatTimers.delete(chat.id);if(state.page==='chat'&&state.chatId===chat.id)render();},1000));
 }
 function renderDirectChatCaseCards(){

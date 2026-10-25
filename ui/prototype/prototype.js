@@ -232,6 +232,7 @@ function applyTemplate(id){state.templateId=id;state.steps=id==='ai-risk'?templa
 ];state.selectedStep='C1';state.output=id==='ai-risk'?'Bảng rủi ro theo cấu phần; executive summary; bằng chứng; bất đồng; biện pháp giảm thiểu; trace thực hiện.':'Ma trận so sánh phương án, trade-off, khuyến nghị và điều kiện triển khai.';}
 function startNew(mode,templateId){state.mode=mode;state.wizard=mode==='template'?4:1;state.hasDraft=true;state.validation='';state.dagView.auto=true;if(templateId)applyTemplate(templateId);else state.templateId=null;go('setup');}
 function handleAction(button){const action=button.dataset.action,id=button.dataset.id;
+  if(handleCaseCreationAction(button))return;
   if(handleWorkspaceAction(button))return;
   if(handleDiscussionAction(button))return;
   if(action==='navigate')return go(button.dataset.page);

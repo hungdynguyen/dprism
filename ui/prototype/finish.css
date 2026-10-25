@@ -158,3 +158,51 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid #40
 .discussion-option .welcome-cta:hover{background:#a24e14;border-color:#a24e14;}
 .workbench-welcome .workspace-note{justify-content:center;margin-top:22px;font-size:12px;}
 @media(max-width:620px){.workbench-welcome{max-width:440px;padding-top:15px;}.workbench-welcome h1{font-size:30px;}.workbench-welcome .welcome-intro p{font-size:17px;}.welcome-options{gap:17px;}.welcome-option{padding:23px;min-height:375px;}.welcome-option+.welcome-option{border:1px solid #e1e5eb;}.welcome-option h2{font-size:23px;}.welcome-cta{min-height:44px;}.welcome-forward{width:40px;height:40px;}}
+
+/* Named case setup and a library that scales beyond a few templates. */
+.new-case-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:26px;}
+.new-case-heading h1{font-size:28px;line-height:1.35;overflow-wrap:anywhere;}
+.new-case-heading p{font-size:14px;color:#596575;margin-top:9px;}
+.new-case-heading>.btn{flex-shrink:0;}
+.case-methods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:38px;}
+.case-method{display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-height:230px;padding:24px;border:1px solid #d8dee7;border-radius:8px;background:white;}
+.case-method:hover{border-color:#aeb9c7;background:#fcfdfe;}
+.case-method.selected{border-color:#c48a98;background:#fffbfc;}
+.case-method-icon{width:42px;height:42px;display:grid;place-items:center;background:#f0f3f7;color:#52677f;border-radius:8px;margin-bottom:18px;}
+.case-method.selected .case-method-icon{background:#fae9ef;color:#a01e39;}
+.case-method-icon .icon{width:22px;height:22px;}
+.case-method h2{font-size:19px;line-height:1.45;margin-bottom:9px;}
+.case-method p{font-size:14px;color:#596575;line-height:1.75;margin-bottom:20px;}
+.case-method-cta{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;margin-top:auto;color:#92223b;}
+.case-method-cta .icon{width:15px;height:15px;}
+.template-catalog{border-top:1px solid #dce1e8;padding-top:27px;scroll-margin-top:20px;}
+.template-library-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:23px;}
+.template-library-heading h2{font-size:21px;}
+.template-library-heading p{font-size:13px;color:#657386;margin-top:6px;}
+.catalog-demo-label{font-size:12px;color:#6b798b;white-space:nowrap;}
+.template-search-tools{display:grid;grid-template-columns:minmax(0,1fr) 220px 170px;gap:16px;align-items:end;}
+.template-search-field .search-box{max-width:none;}
+.template-search-tools .label{font-size:12px;margin-bottom:7px;}
+.template-search-tools input,.template-search-tools select{height:42px;}
+.template-result-status{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:48px;margin:6px 0;font-size:12px;color:#657386;}
+.catalog-template-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch;}
+.catalog-template{display:flex;flex-direction:column;align-items:stretch;text-align:left;padding:22px;border:1px solid #dce1e8;border-radius:7px;background:#fff;min-height:300px;}
+.catalog-template:hover{border-color:#acb8c8;background:#fdfdfe;}
+.catalog-template-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;}
+.catalog-template-top>span:first-child{display:grid;place-items:center;height:30px;width:30px;color:#687e98;background:#f2f5f9;border-radius:6px;}
+.catalog-template-top .icon{width:17px;height:17px;}
+.catalog-template h3{font-size:16px;line-height:1.6;margin-bottom:10px;}
+.catalog-template>p{font-size:13px;color:#596575;line-height:1.8;margin-bottom:15px;}
+.catalog-template-meta{display:flex;flex-wrap:wrap;gap:13px;font-size:12px;color:#657386;margin-top:auto;padding-top:8px;}
+.catalog-template-output{margin-top:15px;border-top:1px solid #edf0f4;padding-top:13px;font-size:12px;color:#667487;line-height:1.7;}
+.catalog-template-output strong{display:block;font-size:12px;font-weight:600;color:#47586e;margin-bottom:3px;}
+.catalog-template-footer{display:flex;align-items:center;justify-content:space-between;margin-top:17px;padding-top:14px;border-top:1px solid #edf0f4;font-size:12px;color:#932039;font-weight:600;}
+.catalog-template-footer .icon{width:15px;height:15px;}
+.template-pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin:26px 0 0;}
+.template-pagination .btn{min-width:36px;}
+.template-catalog-empty{grid-column:1/-1;text-align:center;padding:44px 20px;border:1px dashed #d3dbe6;border-radius:7px;background:#fafbfc;}
+.template-catalog-empty h3{font-size:17px;}.template-catalog-empty p{font-size:14px;color:#657386;margin:10px 0 20px;}
+#case-name-form .wizard-foot{margin-top:23px;}#case-name-form .helper-text{margin-top:10px;}
+@media(max-width:1100px){.catalog-template-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.case-methods{gap:14px;}.case-method{padding:20px;}.case-method h2{font-size:18px;}.template-search-tools{grid-template-columns:minmax(0,1fr) 190px 155px;}}
+@media(max-width:750px){.case-methods{grid-template-columns:1fr;gap:12px;margin-bottom:28px;}.case-method{min-height:0;display:grid;grid-template-columns:42px minmax(0,1fr);column-gap:16px;row-gap:0;padding:20px;}.case-method-icon{grid-column:1;grid-row:1/4;margin:0;}.case-method h2,.case-method p,.case-method-cta{grid-column:2;}.case-method h2{font-size:18px;margin:0 0 5px;}.case-method p{font-size:13px;margin:0 0 12px;}.case-method-cta{font-size:12px;}.template-search-tools{grid-template-columns:1fr 1fr;gap:12px;}.template-search-field{grid-column:1/-1;}.new-case-heading{align-items:flex-start;gap:15px;}.new-case-heading h1{font-size:24px;}.new-case-heading>.btn{font-size:12px;padding:7px 9px;}.catalog-demo-label{display:none;}}
+@media(max-width:620px){.catalog-template-grid{grid-template-columns:1fr;gap:14px;}.catalog-template{min-height:0;padding:21px;}.template-library-heading h2{font-size:20px;}.new-case-heading{flex-direction:column;gap:13px;}.new-case-heading p{font-size:13px;}.template-result-status{font-size:12px;}.template-search-tools input,.template-search-tools select{font-size:14px;}}

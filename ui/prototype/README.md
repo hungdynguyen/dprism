@@ -14,7 +14,7 @@ Open <http://127.0.0.1:4173/>. No packages or internet are needed. Alternatively
 
 - No sidebar or global navigation menu. The logo and explicit **Về trang chủ** button return to the welcome page with its two entry choices.
 - Expert flow: expert list, search, dedicated profile page, dedicated create/edit form and explicit return to the expert list. Profiles no longer open in a popup.
-- Case creation offers template cards, exactly one Open Discussion button and a separate **Trực tiếp trao đổi** button for a one-expert conversation.
+- **Tạo case** opens a naming dialog first. The next screen presents three equally sized choices: **Theo template**, **Thảo luận theo chủ đề**, and **Trực tiếp trao đổi**. The template library underneath supports search, category filtering, sorting and pagination.
 - Template route: select a template → editable Review plan & start → run. Context, files and related cases can be adjusted at review without traversing the four-step wizard.
 - Open Discussion route: context → related cases → plan → final review → run.
 - Drafts and running sessions can be reopened from My cases in the current browser session.
@@ -35,14 +35,14 @@ The Prototype menu in the header contains optional immediate state previews, res
 ## Click-through journeys
 
 1. Home → Expert workspace → select expert → profile page → edit → save → profile → return to list. Create expert opens a dedicated form page.
-2. Home → Discussion → Cases → Create case → choose template → Review plan & start (DAG) → optional inline input/context adjustments → Start.
-3. Home → Discussion → Cases → Create case → the single Open Discussion button → four preparation steps → Start.
+2. Home → Discussion → Cases → Create case → name dialog → Theo template → choose a template from the library → Review plan & start (DAG) → optional inline input/context adjustments → Start.
+3. Home → Discussion → Cases → Create case → name dialog → Thảo luận theo chủ đề → four preparation steps → Start.
 4. During a run, watch the active node move through the DAG every 3 seconds. Click a completed or pending node to inspect it without changing execution. Use **Theo dõi task đang chạy** to resume following the active node.
 5. The final task automatically opens the dashboard. **Prototype → Màn hình mẫu** remains available only to skip ahead or preview early exit during UI review.
 6. Dashboard → select a step → inspect expert views, dissent and source documents → trace → JSON/Markdown export → share full case → Cases / Shared cases.
 7. Use the explicit **Về trang chủ** button or logo to return home. Dedicated return buttons lead from expert detail to expert list and from dashboard to Cases. Returning to Cases preserves a running simulation or draft in memory.
 8. Expert workspace → Trao đổi riêng → one-expert chat → send message → return to the expert list.
-9. Create case → Trực tiếp trao đổi → choose exactly one expert → begin chat. Return to case creation or reopen the conversation from My cases.
+9. Create case → name dialog → Trực tiếp trao đổi → choose exactly one expert → begin chat. Return to case creation or reopen the conversation from the Direct conversations tab.
 10. After the timed plan completes: select an argument → inspect expert views and citations → filter Participants → Xem báo cáo → Argument map.
 
 Only one example, AutoSupport, is used throughout. Baseline results are authored fixtures. Edited/custom tasks receive explicitly generic sample outputs instead of pretending AI analyzed their new instructions. Attachments in TXT/MD/CSV are read locally; PDF/DOCX only show file metadata. No uploads leave the browser.
@@ -103,3 +103,14 @@ Visual direction from `ui-ux-pro-max`: **Minimalism & Swiss Style**, with the gr
 Regression verification used the existing frontend code in an isolated JavaScript context: plan round-trip, draft separation, context reset, browser-history restoration, task deletion/undo, expert drafts, required inputs, guided validation, 12-second simulated run, same-rating disagreement, chat continuation and isolated conversations passed. Key text/CTA pairs were calculated at 5.84:1–6.70:1. JavaScript syntax and CSS brace checks pass.
 
 Visual QA limitation: the in-app browser provider is unavailable; the subsequent attempt to inspect the existing local Edge window ended with **Computer Use app approval timed out**. Responsive geometry, clipping and animation still need real-browser verification; the automated checks above do not claim to establish those.
+
+## Named case creation and template library — 2026-10-26
+
+- Creating a case opens a required name dialog, with Cancel and Continue. No plan is started by naming it. A named case that has no selected method yet appears as a resumable draft in Cases.
+- The method selection screen displays three cards in one desktop row with consistent icon, title, description and action placement. On narrow screens these become three compact full-width cards.
+- Template selection scrolls to the library; topic discussion starts the existing four-step flow; direct exchange opens the single-expert picker. Template selection still jumps directly to final plan review.
+- Eight authored template fixtures demonstrate a larger catalog. Search matches names, categories, descriptions and outputs, including Vietnamese queries without accents. Category filtering, name sorting, six items per page, result counts, clear filters and empty results are implemented in memory.
+- The chosen name is preserved when loading the AutoSupport sample, selecting another template or sending the first direct message. Returning to the method selection screen and choosing a different template reuses that case's draft instead of creating a duplicate. The method screen also offers Rename.
+- Pending named cases, configured plan drafts and direct conversations remain in memory only. The extra templates are fixtures for reviewing the catalog interaction, not validated production workflows.
+
+Verification: isolated JavaScript smoke checks passed for the name dialog, blank-name rejection, three method choices, accent-insensitive search, empty results, pagination, pending drafts, template review shortcut, open-case isolation and direct-chat naming. Syntax checks and local asset delivery were checked separately. Real-browser visual QA remains subject to the limitation above.
