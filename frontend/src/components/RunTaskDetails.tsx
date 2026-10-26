@@ -1,5 +1,6 @@
 import type { Run, Task } from '@/types';
-import { TASK_STATUS } from '@/utils/runStatus';
+import { LoaderCircle } from 'lucide-react';
+import { isActiveTask, TASK_STATUS } from '@/utils/runStatus';
 import { Badge } from '@/components/Badge';
 export function RunTaskDetails({ run, task }: Readonly<{ run: Run; task: Task | undefined }>) {
   if (!task) return null;
@@ -8,12 +9,16 @@ export function RunTaskDetails({ run, task }: Readonly<{ run: Run; task: Task | 
   return (
     <section className="task-panel">
       <header className="panel-heading">
-        <h2 className="section-title">
+        <h2 className="section-title min-w-0 truncate" title={`${task.id} · ${task.title}`}>
           {task.id} · {task.title}
         </h2>
-        {status && <Badge tone={TASK_STATUS[status].tone}>{TASK_STATUS[status].label}</Badge>}
+        {status && (
+          <span className="shrink-0">
+            <Badge tone={TASK_STATUS[status].tone}>{TASK_STATUS[status].label}</Badge>
+          </span>
+        )}
       </header>
-      <div className="panel-body space-y-5">
+      <div className="panel-body space-y-5 [overflow-anchor:none]">
         <div className="grid gap-5 md:grid-cols-2">
           <section>
             <h3 className="section-title">Expert được giao</h3>
@@ -33,6 +38,16 @@ export function RunTaskDetails({ run, task }: Readonly<{ run: Run; task: Task | 
           </section>
           <section>
             <h3 className="section-title">Đầu ra</h3>
+            {status && isActiveTask(status) && (
+              <p className="mt-2 flex min-h-7 items-center gap-2 text-xs text-primary">
+                <LoaderCircle
+                  size={14}
+                  aria-hidden="true"
+                  className="shrink-0 animate-spin motion-reduce:animate-none"
+                />
+                Đang xử lý · {TASK_STATUS[status].label}
+              </p>
+            )}
             <p className="mt-2 text-sm text-n4">{result?.summary || task.output}</p>
             {result?.disagreements.map((d, i) => (
               <div

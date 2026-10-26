@@ -1,6 +1,7 @@
 import type {
   CaseContext,
   CaseDraft,
+  CaseMethod,
   ChatMessage,
   Expert,
   ExpertInput,
@@ -61,8 +62,11 @@ export const createTemplate = (data: Omit<PlanTemplate, 'id' | 'version'>) =>
 export const getCases = (signal?: AbortSignal) => request<CaseDraft[]>('/api/cases', { signal });
 export const getCase = (id: string, signal?: AbortSignal) =>
   request<CaseDraft>(`/api/cases/${encodeURIComponent(id)}`, { signal });
-export const createCase = (data: { title: string; referenceCaseIds?: string[] }) =>
-  request<CaseDraft>('/api/cases', { method: 'POST', body: JSON.stringify(data) });
+export const createCase = (data: {
+  title: string;
+  referenceCaseIds?: string[];
+  method?: CaseMethod;
+}) => request<CaseDraft>('/api/cases', { method: 'POST', body: JSON.stringify(data) });
 export const updateCase = (data: CaseDraft) =>
   request<CaseDraft>(`/api/cases/${encodeURIComponent(data.id)}`, {
     method: 'PUT',

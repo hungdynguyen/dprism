@@ -8,23 +8,6 @@ import { sampleContext } from '@/mocks/fixtures';
 import { useChatStore } from '@/hooks/useChatStore';
 
 describe('Recoverable editing and messaging', () => {
-  it('keeps an expert form draft across navigation and clears it on explicit cancel', async () => {
-    const user = userEvent.setup(),
-      first = renderRoute('/experts/safety/edit');
-    const field = await screen.findByLabelText(/Vai trò chuyên môn/);
-    await user.clear(field);
-    await user.type(field, 'Senior Safety Expert');
-    await user.click(screen.getByRole('link', { name: 'Về trang chủ' }));
-    await screen.findByRole('heading', { name: 'Chào Tran!' });
-    first.unmount();
-    first.client.clear();
-    renderRoute('/experts/safety/edit');
-    expect(await screen.findByLabelText(/Vai trò chuyên môn/)).toHaveValue('Senior Safety Expert');
-    await user.click(screen.getByRole('button', { name: 'Hủy' }));
-    await screen.findByRole('heading', { name: 'AI Safety Expert', level: 1 });
-    expect(sessionStorage.getItem('dprism.expert-draft:tran:safety')).toBeNull();
-    expect((await api.getExpert('safety')).role).toBe('AI Safety Expert');
-  });
   it('keeps a failed case edit recoverable and allows an explicit retry', async () => {
     const draft = await api.createCase({ title: 'Retry test' }),
       template = (await api.getTemplates())[0];

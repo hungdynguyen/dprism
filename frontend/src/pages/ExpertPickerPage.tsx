@@ -1,26 +1,28 @@
 import { useMemo, useState } from 'react';
-import { ArrowRight, Check, FileText, MessageSquare, Search, X } from 'lucide-react';
+import { FileText, Search, X } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useExperts, useSkills } from '@/hooks/useExperts';
-import { useCase, useUpdateCase } from '@/hooks/useCases';
-import { useChatStore } from '@/hooks/useChatStore';
+import { useCase } from '@/hooks/useCases';
+import { useStartExpertChat } from '@/hooks/useStartExpertChat';
 import { BackLink, PageHeader } from '@/components/PageHeader';
-import { ExpertMark } from '@/components/ExpertMark';
+import { ExpertCard } from '@/components/ExpertCard';
+import { StartExpertChatDialog } from '@/components/StartExpertChatDialog';
 import { Button } from '@/components/Button';
 import { ErrorState, Loading } from '@/components/AsyncState';
 import { matchesSearch } from '@/utils/format';
+import type { Expert } from '@/types';
+
 export function ExpertPickerPage() {
   const { id = '' } = useParams(),
-    [params] = useSearchParams(),
-    experts = useExperts(),
+    [params] = useSearchParams();
+  const experts = useExperts(),
     skills = useSkills(),
-    draft = useCase(id),
-    save = useUpdateCase(id),
-    navigate = useNavigate(),
-    start = useChatStore((s) => s.start);
+    draft = useCase(id);
+  const start = useStartExpertChat(),
+    navigate = useNavigate();
   const [search, setSearch] = useState(''),
-    [domain, setDomain] = useState('all'),
-    [selectedId, setSelectedId] = useState('');
+    [domain, setDomain] = useState('all');
+  const [chatExpert, setChatExpert] = useState<Expert | null>(null);
   const list = useMemo(
     () =>
       (experts.data || []).filter(
@@ -40,41 +42,38 @@ export function ExpertPickerPage() {
   );
   if (experts.isPending || skills.isPending || (id && draft.isPending)) return <Loading />;
   if (experts.error || skills.error || draft.error)
-    return <ErrorState error={experts.error || skills.error || draft.error} />;
-  const selected = experts.data.find((e) => e.id === selectedId),
-    returnTo = id
-      ? `/cases/${id}/start`
-      : params.get('returnTo') === '/cases'
-        ? '/cases'
-        : '/experts';
-  const begin = async () => {
-    if (!selected) return;
-    const chatId = start({
-      expert: selected,
-      title: draft.data?.title,
-      caseId: id || undefined,
-      returnTo,
-    });
+    return (
+      <ErrorState
+        error={experts.error || skills.error || draft.error}
+        retry={() => {
+          void experts.refetch();
+          void skills.refetch();
+          if (id) void draft.refetch();
+        }}
+      />
+    );
+  const returnTo = id ? '/cases' : params.get('returnTo') === '/cases' ? '/cases' : '/experts';
+  const begin = async (expert: Expert) => {
+    if (!draft.data) {
+      setChatExpert(expert);
+      return;
+    }
     try {
-      if (draft.data)
-        await save.mutateAsync({
-          ...draft.data,
-          method: 'direct',
-          chatId,
-          revision: draft.data.revision + 1,
-        });
+      const { chatId } = await start.mutateAsync({ draft: draft.data, expert });
       navigate(`/chats/${chatId}`);
     } catch {
-      /* Remain in picker if saving fails. */
+      /* The action remains available for retry. */
     }
   };
   return (
     <section className="mx-auto max-w-[1100px]">
-      <BackLink to={returnTo}>{id ? 'Quay lại tạo case' : 'Quay lại danh sách expert'}</BackLink>
+      <BackLink to={returnTo}>
+        {returnTo === '/cases' ? 'Quay lại Cases' : 'Quay lại danh sách expert'}
+      </BackLink>
       <PageHeader
         eyebrow="Trao đổi riêng"
-        title="Chọn chuyên gia"
-        description="Xem chuyên môn và cách tiếp cận trước khi bắt đầu cuộc trao đổi."
+        title="Bạn muốn trao đổi với ai?"
+        description="Chọn chuyên gia phù hợp và bắt đầu cuộc trò chuyện."
       />
       {draft.data && (
         <p className="-mt-3 mb-5 flex items-center gap-2 text-xs text-n4">
@@ -86,7 +85,6 @@ export function ExpertPickerPage() {
         <div className="relative">
           <Search size={17} className="absolute left-3 top-3 text-n4" />
           <input
-            id="expert-picker-search"
             aria-label="Tìm theo tên, chuyên môn hoặc kỹ năng"
             placeholder="Tìm theo tên, chuyên môn hoặc kỹ năng…"
             value={search}
@@ -114,66 +112,31 @@ export function ExpertPickerPage() {
           ))}
         </select>
       </div>
-      <div className="my-4 flex justify-between text-xs text-n4">
-        <span role="status">
-          {list.length} chuyên gia{list.length !== experts.data.length ? ' phù hợp' : ''}
-        </span>
-        <span className="hidden sm:inline">Mỗi cuộc trao đổi gồm một chuyên gia</span>
-      </div>
-      <fieldset className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <legend className="sr-only">Chọn một chuyên gia AI</legend>
+      <p role="status" className="my-4 text-xs text-n4">
+        {list.length} chuyên gia{list.length !== experts.data.length ? ' phù hợp' : ''}
+      </p>
+      {start.error && (
+        <div className="mb-4">
+          <ErrorState error={start.error} />
+        </div>
+      )}
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {list.map((expert) => (
-          <label
+          <ExpertCard
             key={expert.id}
-            className={`flex min-h-[275px] cursor-pointer flex-col rounded-lg border p-5 transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-info ${selectedId === expert.id ? 'border-primary bg-tint-3 ring-1 ring-primary' : 'border-n2 bg-n0 hover:border-n3'}`}
-          >
-            <span className="mb-4 flex items-center justify-between">
-              <ExpertMark expert={expert} />
-              <input
-                type="radio"
-                name="direct-expert"
-                value={expert.id}
-                checked={selectedId === expert.id}
-                onChange={() => setSelectedId(expert.id)}
-                aria-labelledby={`expert-label-${expert.id}`}
-                className="!h-[18px] !w-[18px]"
-              />
-            </span>
-            <span className="mb-1 text-xs text-n4">{expert.domain}</span>
-            <strong
-              id={`expert-label-${expert.id}`}
-              className="text-lg font-semibold leading-6 tracking-tight"
-            >
-              {expert.role}
-            </strong>
-            <span className="mb-4 mt-3 text-sm leading-6 text-n4">{expert.approach}</span>
-            <span className="mt-auto flex flex-wrap gap-2 pb-4">
-              {skills.data
-                .filter((s) => expert.skillIds.includes(s.id))
-                .map((s) => (
-                  <span key={s.id} className="rounded bg-n1 px-2 py-1 text-xs text-n4">
-                    {s.name}
-                  </span>
-                ))}
-            </span>
-            <span
-              className={`flex items-center gap-2 border-t border-n2 pt-3 text-xs font-semibold ${selectedId === expert.id ? 'text-primary' : 'text-n4'}`}
-            >
-              {selectedId === expert.id ? (
-                <>
-                  <Check size={15} />
-                  Đã chọn
-                </>
-              ) : (
-                <>
-                  Chọn chuyên gia
-                  <ArrowRight size={15} className="ml-auto" />
-                </>
-              )}
-            </span>
-          </label>
+            expert={expert}
+            skills={skills.data}
+            onChat={() => void begin(expert)}
+            disabled={start.isPending}
+            busy={start.isPending && start.variables?.expert.id === expert.id}
+            profileReturnTo={
+              id
+                ? `/cases/${id}/experts`
+                : `/experts/select${params.size ? `?${params.toString()}` : ''}`
+            }
+          />
         ))}
-      </fieldset>
+      </div>
       {!list.length && (
         <div className="rounded-lg border border-dashed border-n3 py-12 text-center">
           <h2 className="font-semibold">Chưa tìm thấy chuyên gia phù hợp</h2>
@@ -188,37 +151,13 @@ export function ExpertPickerPage() {
           </Button>
         </div>
       )}
-      {save.error && <ErrorState error={save.error} />}
-      <footer className="sticky bottom-3 mt-6 flex items-center justify-between gap-3 rounded-lg border border-n2 bg-n0 p-3 shadow-panel sm:p-5">
-        <div aria-live="polite" className="flex min-w-0 items-center gap-3">
-          <span className="hidden sm:block">
-            {selected ? (
-              <ExpertMark expert={selected} small />
-            ) : (
-              <MessageSquare size={22} className="text-n4" />
-            )}
-          </span>
-          <div className="min-w-0">
-            <strong className="block text-xs font-semibold sm:text-sm">
-              {selected?.role || 'Chưa chọn chuyên gia'}
-            </strong>
-            <span className="hidden text-xs text-n4 sm:block">
-              {selected
-                ? `${selected.domain} · Đã chọn 1 chuyên gia`
-                : 'Chọn một chuyên gia ở phía trên.'}
-            </span>
-          </div>
-        </div>
-        <Button
-          variant="primary"
-          disabled={!selected || save.isPending}
-          onClick={() => void begin()}
-          className="shrink-0 !px-3 !text-xs sm:!text-sm"
-        >
-          Bắt đầu trao đổi
-          <ArrowRight size={15} />
-        </Button>
-      </footer>
+      {chatExpert && (
+        <StartExpertChatDialog
+          expert={chatExpert}
+          referenceCaseIds={params.getAll('reference')}
+          onClose={() => setChatExpert(null)}
+        />
+      )}
     </section>
   );
 }

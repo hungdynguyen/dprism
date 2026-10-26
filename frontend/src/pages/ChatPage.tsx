@@ -3,188 +3,162 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowUp, RotateCcw } from 'lucide-react';
 import { Markdown } from '@/components/Markdown';
 import { useConversation } from '@/hooks/useConversation';
-import { ExpertMark } from '@/components/ExpertMark';
-import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { apiErrorMessage } from '@/utils/apiError';
+
 export function ChatPage() {
-  const { id = '' } = useParams(),
-    { conversation, send, retry, pending, error } = useConversation(id),
-    [input, setInput] = useState(''),
-    transcript = useRef<HTMLDivElement>(null);
+  const { id = '' } = useParams();
+  const { conversation, send, retry, pending, error } = useConversation(id);
+  const [input, setInput] = useState('');
+  const transcript = useRef<HTMLDivElement>(null),
+    composer = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     transcript.current?.scrollTo({ top: transcript.current.scrollHeight, behavior: 'auto' });
   }, [conversation?.messages.length, pending]);
+  useEffect(() => {
+    const element = composer.current;
+    if (element) {
+      element.style.height = 'auto';
+      element.style.height = `${Math.min(element.scrollHeight, 180)}px`;
+    }
+  }, [input]);
   if (!conversation)
     return (
       <Card>
         <h1 className="text-xl font-semibold">Không tìm thấy cuộc trao đổi</h1>
         <p className="my-3 text-n4">Hội thoại chỉ được lưu trên trình duyệt này.</p>
-        <Link to="/experts" className="text-primary underline">
-          Chọn chuyên gia
+        <Link to="/cases?tab=chats" className="text-primary underline">
+          Về danh sách trao đổi
         </Link>
       </Card>
     );
+  const failed = conversation.messages.at(-1)?.failed;
   const submit = () => {
-    if (!input.trim() || pending) return;
+    if (!input.trim() || pending || failed) return;
     send(input);
     setInput('');
+    composer.current?.focus();
   };
-  const failed = conversation.messages.at(-1)?.failed;
   return (
-    <div className="mx-auto flex min-h-[calc(100dvh-160px)] max-w-[1200px] flex-col">
-      <header className="mb-5 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <ExpertMark expert={conversation.expert} />
-          <div>
-            <p className="text-xs text-n4">Trao đổi riêng · {conversation.expert.role}</p>
-            <h1 className="mt-1 text-xl font-semibold">{conversation.title}</h1>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-4 text-xs font-medium text-n4">
-          <Link to={conversation.returnTo} className="flex items-center gap-2">
-            <ArrowLeft size={14} />
-            {conversation.caseId ? 'Quay lại case' : 'Danh sách expert'}
-          </Link>
-          <Link
-            to={
-              conversation.caseId
-                ? `/cases/${conversation.caseId}/experts`
-                : '/experts/select?returnTo=/experts'
-            }
-          >
-            Chọn expert khác
-          </Link>
+    <section className="flex min-h-0 flex-1 flex-col">
+      <header className="flex shrink-0 items-center gap-3 border-b border-n2 pb-4 sm:gap-5">
+        <Link
+          to={conversation.returnTo}
+          aria-label="Quay lại danh sách trao đổi"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-n4 hover:bg-n2/40"
+        >
+          <ArrowLeft size={19} />
+        </Link>
+        <div className="min-w-0">
+          <h1 title={conversation.title} className="truncate text-base font-semibold">
+            {conversation.title}
+          </h1>
+          <p className="truncate text-xs text-n4">{conversation.expert.role}</p>
         </div>
       </header>
-      <div className="grid min-h-0 flex-1 gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
-        <section className="flex min-h-[550px] flex-col overflow-hidden rounded-xl border border-n2 bg-n0">
-          <div
-            ref={transcript}
-            role="log"
-            aria-live="polite"
-            aria-label="Nội dung trao đổi"
-            className="max-h-[60dvh] flex-1 space-y-5 overflow-y-auto p-5 sm:p-7"
-          >
-            {!conversation.messages.length && (
-              <div className="py-8">
-                <h2 className="text-xl font-semibold">Bạn muốn làm rõ điều gì?</h2>
-                <p className="mt-3 text-n4">{conversation.expert.approach}</p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {[
-                    'Các rủi ro quan trọng của AutoSupport là gì?',
-                    'Tôi nên chuẩn bị bằng chứng nào?',
-                    'Gợi ý cách giảm thiểu rủi ro.',
-                  ].map((question) => (
-                    <button
-                      key={question}
-                      onClick={() => setInput(question)}
-                      className="rounded-lg border border-n2 px-3 py-2 text-left text-xs text-n4 hover:bg-n1"
-                    >
-                      {question}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {conversation.messages.map((message) => (
-              <article
-                key={message.id}
-                className={`max-w-[92%] ${message.role === 'user' ? 'ml-auto' : ''}`}
-              >
-                <p className="mb-2 text-xs font-semibold text-n4">
-                  {message.role === 'user' ? 'Bạn' : conversation.expert.role}
-                  {message.mock && <span className="ml-2 font-normal">· Phản hồi mô phỏng</span>}
-                </p>
-                <div
-                  className={`prose rounded-lg px-4 py-2 ${message.role === 'user' ? 'bg-tint-1' : 'bg-n1'}`}
-                >
-                  <Markdown>{message.content}</Markdown>
-                </div>
-                {message.failed && (
-                  <p className="mt-2 text-xs text-primary">Chưa gửi thành công.</p>
-                )}
-              </article>
-            ))}
-            {pending && (
-              <p role="status" className="text-sm text-n4">
-                {conversation.expert.role} đang trả lời…
+      <div
+        ref={transcript}
+        role="log"
+        aria-live="polite"
+        aria-label="Nội dung trao đổi"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      >
+        <div
+          className={`mx-auto flex min-h-full w-full max-w-3xl flex-col px-1 py-6 sm:px-4 sm:py-10 ${conversation.messages.length ? 'gap-8' : 'justify-center'}`}
+        >
+          {!conversation.messages.length && (
+            <div className="pb-8 text-center">
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                Bạn muốn trao đổi điều gì?
+              </h2>
+              <p className="mx-auto mt-3 max-w-md text-sm text-n4">
+                Chia sẻ vấn đề hoặc đặt câu hỏi để bắt đầu.
               </p>
-            )}
-          </div>
-          {error && (
-            <div role="alert" className="border-t border-n2 px-5 py-3 text-xs text-primary">
-              {apiErrorMessage(error)}{' '}
-              {failed && (
-                <button className="ml-2 inline-flex items-center gap-1 underline" onClick={retry}>
-                  <RotateCcw size={12} />
-                  Thử lại
-                </button>
-              )}
             </div>
           )}
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              submit();
-            }}
-            className="border-t border-n2 p-4"
-          >
-            <label htmlFor="chat-input" className="sr-only">
-              Tin nhắn cho expert
-            </label>
-            <textarea
-              id="chat-input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              maxLength={8000}
-              placeholder={`Đặt câu hỏi cho ${conversation.expert.role}…`}
-              className="!min-h-20 !border-transparent"
-              onKeyDown={(event) => {
-                if (
-                  event.key === 'Enter' &&
-                  (event.ctrlKey || event.metaKey) &&
-                  !event.nativeEvent.isComposing
-                ) {
-                  event.preventDefault();
-                  submit();
-                }
-              }}
-            />
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <p className="text-xs text-n4">Chỉ một expert tham gia · Ctrl + Enter để gửi</p>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={pending || !input.trim() || !!failed}
-                aria-label="Gửi tin nhắn"
+          {conversation.messages.map((message) => (
+            <article
+              key={message.id}
+              aria-label={message.role === 'user' ? 'Bạn' : conversation.expert.role}
+              className={
+                message.role === 'user' ? 'ml-auto max-w-[88%] sm:max-w-[80%]' : 'w-full min-w-0'
+              }
+            >
+              <div
+                className={`prose min-w-0 break-words [overflow-wrap:anywhere] ${message.role === 'user' ? 'rounded-3xl bg-n2/50 px-5 py-1 [&_p]:my-2' : ''}`}
               >
-                <ArrowUp size={17} />
-                Gửi
-              </Button>
-            </div>
-          </form>
-        </section>
-        <aside className="hidden space-y-5 lg:block">
-          <Card>
-            <h2 className="font-semibold">{conversation.expert.role}</h2>
-            <p className="helper mt-2">{conversation.expert.domain}</p>
-            <h3 className="section-title mt-6">Cách đánh giá</h3>
-            <p className="mt-2 text-sm text-n4">{conversation.expert.approach}</p>
-            <details className="mt-5 border-t border-n2 pt-4">
-              <summary className="cursor-pointer text-sm font-semibold">
-                System instructions
-              </summary>
-              <pre className="mt-3 whitespace-pre-wrap text-xs leading-6 text-n4">
-                {conversation.expert.systemPrompt}
-              </pre>
-            </details>
-          </Card>
-          <p className="helper px-1">
-            Lịch sử được lưu trên trình duyệt này. Knowledge Base chưa triển khai.
-          </p>
-        </aside>
+                <Markdown>{message.content}</Markdown>
+              </div>
+              {message.mock && <p className="mt-2 text-[11px] text-n4">Phản hồi mô phỏng</p>}
+              {message.failed && <p className="mt-2 text-xs text-primary">Chưa gửi thành công.</p>}
+            </article>
+          ))}
+          {pending && (
+            <p role="status" className="flex items-center gap-2 text-sm text-n4">
+              <span className="h-2 w-2 rounded-full bg-n4 motion-safe:animate-pulse" />
+              Đang trả lời…
+            </p>
+          )}
+        </div>
       </div>
-    </div>
+      <div className="mx-auto w-full max-w-3xl shrink-0 pt-3 sm:px-4">
+        {(error || failed) && (
+          <div role="alert" className="mb-3 rounded-lg bg-tint-1 px-4 py-3 text-xs text-primary">
+            {error ? apiErrorMessage(error) : 'Tin nhắn chưa nhận được phản hồi.'}
+            {failed && (
+              <button
+                disabled={pending}
+                className="ml-3 inline-flex items-center gap-1 underline disabled:opacity-50"
+                onClick={retry}
+              >
+                <RotateCcw size={12} />
+                Thử lại
+              </button>
+            )}
+          </div>
+        )}
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            submit();
+          }}
+          className="rounded-3xl border border-n3/70 bg-n0 p-3 shadow-sm focus-within:border-n4"
+        >
+          <label htmlFor="chat-input" className="sr-only">
+            Tin nhắn cho expert
+          </label>
+          <textarea
+            ref={composer}
+            id="chat-input"
+            rows={1}
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            maxLength={8000}
+            placeholder="Nhập tin nhắn…"
+            className="!min-h-12 !resize-none !rounded-xl !border-0 !bg-transparent !px-3 !py-2 !shadow-none !ring-0"
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+                event.preventDefault();
+                submit();
+              }
+            }}
+          />
+          <div className="flex items-center justify-between gap-3 pl-3">
+            <span className="text-[11px] text-n4">Shift + Enter để xuống dòng</span>
+            <button
+              type="submit"
+              disabled={pending || !input.trim() || !!failed}
+              aria-label="Gửi tin nhắn"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-n6 text-n0 transition-colors hover:bg-n5 disabled:cursor-not-allowed disabled:bg-n2 disabled:text-n4"
+            >
+              <ArrowUp size={19} />
+            </button>
+          </div>
+        </form>
+        <p className="mt-2 text-center text-[11px] leading-5 text-n4">
+          Lịch sử được lưu trên trình duyệt này.
+        </p>
+      </div>
+    </section>
   );
 }

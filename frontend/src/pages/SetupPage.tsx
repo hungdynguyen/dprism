@@ -42,7 +42,7 @@ function SetupInput({ step }: Readonly<{ step: number }>) {
   const back = async () => {
     try {
       await editor.save();
-      navigate(step === 1 ? `/cases/${id}/start` : `/cases/${id}/setup/1`);
+      navigate(step === 1 ? '/cases' : `/cases/${id}/setup/1`);
     } catch {
       /* Keep unsaved edits visible. */
     }

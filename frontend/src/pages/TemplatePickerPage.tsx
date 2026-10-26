@@ -1,13 +1,5 @@
 import { useMemo, useState } from 'react';
-import {
-  ArrowLeft,
-  ArrowRight,
-  FileText,
-  MessageSquare,
-  Network,
-  Pencil,
-  Search,
-} from 'lucide-react';
+import { ArrowLeft, ArrowRight, FileText, Pencil, Search } from 'lucide-react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useCaseEditor } from '@/hooks/useCaseEditor';
 import { useTemplates } from '@/hooks/useCases';
@@ -20,7 +12,7 @@ import { Modal } from '@/components/Modal';
 import { Field } from '@/components/Field';
 import { matchesSearch } from '@/utils/format';
 import type { CaseDraft, PlanTemplate } from '@/types';
-export function CaseMethodPage() {
+export function TemplatePickerPage() {
   const { id = '' } = useParams(),
     editor = useCaseEditor(id),
     templates = useTemplates(),
@@ -48,43 +40,44 @@ export function CaseMethodPage() {
   if (templates.error)
     return <ErrorState error={templates.error} retry={() => void templates.refetch()} />;
   if (draft.runId) return <Navigate to={`/runs/${draft.runId}`} replace />;
-  const choose = async (method: 'open' | 'direct', template?: PlanTemplate) => {
+  const choose = async (template: PlanTemplate) => {
+    if (editor.saving) return;
+    if (draft.templateId === template.id && draft.tasks.length) {
+      try {
+        await editor.save(draft);
+        navigate(`/cases/${id}/plan`);
+      } catch {
+        /* Retrying the same selection must still persist a failed save. */
+      }
+      return;
+    }
     if (
-      template &&
       draft.tasks.length &&
       !(await confirm({
-        title: 'Dùng template này?',
+        title: 'Thay template hiện tại?',
         message:
-          'Các task hiện tại sẽ được thay bằng template đã chọn. Tên, bối cảnh và tài liệu hồ sơ của case được giữ lại.',
-        confirmLabel: 'Dùng template',
+          'Các task và phân công đã chỉnh sửa sẽ được thay bằng template mới. Tên, bối cảnh và tài liệu hồ sơ của case được giữ lại.',
+        confirmLabel: 'Thay template',
       }))
     )
       return;
     const next: CaseDraft = {
       ...draft,
-      method: template ? 'template' : method,
-      templateId: template?.id || null,
-      wizardStep: template ? 4 : 1,
+      method: 'template',
+      templateId: template.id,
+      wizardStep: 4,
       revision: draft.revision + 1,
-    };
-    if (template) {
-      next.tasks = structuredClone(template.tasks);
-      next.output = template.output;
-      next.documents = [
+      tasks: structuredClone(template.tasks),
+      output: template.output,
+      documents: [
         ...draft.documents.filter((d) => d.kind === 'case'),
         ...structuredClone(template.documents),
-      ];
-    } else if (draft.method === 'template') next.tasks = [];
+      ],
+    };
     editor.replace(next);
     try {
       await editor.save(next);
-      navigate(
-        template
-          ? `/cases/${id}/plan`
-          : method === 'open'
-            ? `/cases/${id}/setup/1`
-            : `/cases/${id}/experts`,
-      );
+      navigate(`/cases/${id}/plan`);
     } catch {
       /* Save feedback remains visible. */
     }
@@ -98,9 +91,9 @@ export function CaseMethodPage() {
     <>
       <BackLink to="/cases">Quay lại Cases</BackLink>
       <PageHeader
-        eyebrow="CASE MỚI"
-        title={draft.title}
-        description="Cùng một mục tiêu, ba cách làm việc với chuyên gia."
+        eyebrow="DÙNG TEMPLATE"
+        title="Chọn template"
+        description={`Case: ${draft.title} · Chọn quy trình phù hợp để review plan và bắt đầu.`}
         action={
           <Button
             onClick={() => {
@@ -113,61 +106,8 @@ export function CaseMethodPage() {
           </Button>
         }
       />
-      <div className="mb-9 grid gap-4 md:grid-cols-3">
-        {[
-          {
-            title: 'Theo template',
-            description: 'Dùng quy trình có sẵn, điều chỉnh rồi chạy.',
-            icon: FileText,
-            action: 'Xem thư viện template',
-            onClick: () => {
-              document.getElementById('template-library')?.scrollIntoView({
-                behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-                  ? 'auto'
-                  : 'smooth',
-              });
-              document.getElementById('template-search')?.focus({ preventScroll: true });
-            },
-          },
-          {
-            title: 'Thảo luận theo chủ đề',
-            description: 'Nhiều expert giải quyết vấn đề qua bốn bước chuẩn bị.',
-            icon: Network,
-            action: 'Bắt đầu theo chủ đề',
-            onClick: () => void choose('open'),
-          },
-          {
-            title: 'Trực tiếp trao đổi',
-            description: 'Trao đổi riêng với một expert, không cần thiết lập plan.',
-            icon: MessageSquare,
-            action: 'Chọn một expert',
-            onClick: () => void choose('direct'),
-          },
-        ].map((method, index) => (
-          <button
-            key={method.title}
-            onClick={method.onClick}
-            disabled={editor.saving}
-            className={`flex min-h-52 flex-col rounded-lg border p-6 text-left transition-colors disabled:opacity-50 ${index === 0 ? 'border-tint-2 bg-tint-3' : 'border-n2 bg-n0 hover:border-n3'}`}
-          >
-            <span
-              className={`mb-4 grid h-10 w-10 place-items-center rounded-lg ${index === 0 ? 'bg-tint-1 text-primary' : 'bg-n1 text-info'}`}
-            >
-              <method.icon size={21} />
-            </span>
-            <h2 className="mb-2 text-lg font-semibold">{method.title}</h2>
-            <p className="mb-5 text-sm text-n4">{method.description}</p>
-            <span className="mt-auto flex items-center gap-2 text-xs font-semibold text-primary">
-              {method.action}
-              <ArrowRight size={15} />
-            </span>
-          </button>
-        ))}
-      </div>
       {editor.saveError && <ErrorState error={editor.saveError} />}
-      <section id="template-library" className="border-t border-n2 pt-6">
-        <h2 className="text-xl font-semibold">Thư viện template</h2>
-        <p className="mt-2 text-sm text-n4">Chọn quy trình phù hợp để review plan và bắt đầu.</p>
+      <section aria-label="Thư viện template">
         <div className="mt-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_200px_160px]">
           <div className="relative">
             <Search size={17} className="absolute left-3 top-3 text-n4" />
@@ -214,7 +154,7 @@ export function CaseMethodPage() {
               ? `${(page - 1) * 6 + 1}–${Math.min(page * 6, filtered.length)} trong ${filtered.length} template`
               : 'Không tìm thấy template phù hợp'}
           </span>
-          {(search || category !== 'all') && (
+          {(search || category !== 'all') && filtered.length > 0 && (
             <button className="text-primary" onClick={resetFilters}>
               Xóa bộ lọc
             </button>
@@ -224,8 +164,9 @@ export function CaseMethodPage() {
           {filtered.slice((page - 1) * 6, page * 6).map((template) => (
             <button
               key={template.id}
-              onClick={() => void choose('open', template)}
-              className="flex min-h-72 flex-col rounded-lg border border-n2 bg-n0 p-5 text-left hover:border-n3"
+              onClick={() => void choose(template)}
+              disabled={editor.saving}
+              className="flex min-h-72 flex-col rounded-lg border border-n2 bg-n0 p-5 text-left hover:border-n3 disabled:cursor-wait disabled:opacity-50"
             >
               <div className="mb-4 flex items-center justify-between">
                 <FileText size={20} className="text-info" />
@@ -252,9 +193,7 @@ export function CaseMethodPage() {
         {!filtered.length && (
           <div className="rounded-lg border border-dashed border-n3 p-12 text-center">
             <h3 className="font-semibold">Chưa có template phù hợp</h3>
-            <p className="my-3 text-n4">
-              Thử từ khóa khác, hoặc bắt đầu bằng thảo luận theo chủ đề.
-            </p>
+            <p className="my-3 text-n4">Thử từ khóa khác hoặc xem lại tất cả lĩnh vực.</p>
             <Button onClick={resetFilters}>Xóa bộ lọc</Button>
           </div>
         )}
@@ -309,8 +248,9 @@ export function CaseMethodPage() {
               onChange={(e) => setNameDraft(e.target.value)}
             />
           </Field>
+          {editor.saveError && <ErrorState error={editor.saveError} />}
           <div className="mt-6 flex justify-end">
-            <Button type="submit" variant="primary" disabled={editor.saving}>
+            <Button type="submit" variant="primary" disabled={editor.saving || !nameDraft.trim()}>
               Lưu tên
             </Button>
           </div>

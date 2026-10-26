@@ -1,5 +1,12 @@
 import { delay, http, HttpResponse } from 'msw';
-import type { CaseDraft, ChatMessage, ExpertInput, PlanDocument, PlanTemplate } from '@/types';
+import type {
+  CaseDraft,
+  CaseMethod,
+  ChatMessage,
+  ExpertInput,
+  PlanDocument,
+  PlanTemplate,
+} from '@/types';
 import { blankCase, db, persistMockDatabase } from '@/mocks/database';
 import {
   riskTasks,
@@ -73,10 +80,17 @@ export const handlers = [
     return item ? HttpResponse.json(item) : fail('Không tìm thấy case.');
   }),
   http.post('/api/cases', async ({ request }) => {
-    const data = (await request.json()) as { title: string; referenceCaseIds?: string[] };
+    const data = (await request.json()) as {
+      title: string;
+      referenceCaseIds?: string[];
+      method?: CaseMethod;
+    };
     if (!data.title.trim()) return fail('Nhập tên case.', 400);
+    if (data.method && !['template', 'open', 'direct'].includes(data.method))
+      return fail('Hình thức case không hợp lệ.', 400);
     const item = blankCase(data.title.trim());
     item.referenceCaseIds = data.referenceCaseIds || [];
+    item.method = data.method || null;
     db.cases.unshift(item);
     persistMockDatabase();
     return HttpResponse.json(item, { status: 201 });

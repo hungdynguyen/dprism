@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Play, Save } from 'lucide-react';
+import { ArrowLeft, LoaderCircle, Play, Save } from 'lucide-react';
 import { useCaseEditor } from '@/hooks/useCaseEditor';
 import { useCreateTemplate, useProposePlan } from '@/hooks/useCases';
 import { useExperts } from '@/hooks/useExperts';
@@ -36,6 +36,8 @@ export function PlanPage({ openStep }: Readonly<{ openStep?: number }>) {
     );
   if (editor.error || experts.error) return <ErrorState error={editor.error || experts.error} />;
   if (draft.runId) return <Navigate to={`/runs/${draft.runId}`} replace />;
+  if (!openStep && draft.method === 'template' && !draft.templateId)
+    return <Navigate to={`/cases/${id}/templates`} replace />;
   const proceed = async () => {
     const errors = validateCase(draft);
     setIssues(errors);
@@ -54,7 +56,7 @@ export function PlanPage({ openStep }: Readonly<{ openStep?: number }>) {
   const back = async () => {
     try {
       await editor.save();
-      navigate(openStep ? `/cases/${id}/setup/${designing ? 2 : 3}` : `/cases/${id}/start`);
+      navigate(openStep ? `/cases/${id}/setup/${designing ? 2 : 3}` : `/cases/${id}/templates`);
     } catch {
       /* Remain on the page if saving fails. */
     }
@@ -152,7 +154,7 @@ export function PlanPage({ openStep }: Readonly<{ openStep?: number }>) {
         <Button onClick={() => void back()}>
           <ArrowLeft size={15} />
           <span className="hidden sm:inline">
-            {openStep ? (designing ? 'Case liên quan' : 'Chỉnh plan') : 'Chọn cách khác'}
+            {openStep ? (designing ? 'Case liên quan' : 'Chỉnh plan') : 'Chọn template khác'}
           </span>
         </Button>
         <span className="hidden text-xs text-n4 sm:block">
@@ -163,7 +165,15 @@ export function PlanPage({ openStep }: Readonly<{ openStep?: number }>) {
           onClick={() => void proceed()}
           disabled={start.isPending || editor.saving}
         >
-          <Play size={15} />
+          {start.isPending ? (
+            <LoaderCircle
+              size={15}
+              aria-hidden="true"
+              className="animate-spin motion-reduce:animate-none"
+            />
+          ) : (
+            <Play size={15} />
+          )}
           {start.isPending ? 'Đang bắt đầu…' : designing ? 'Review plan' : 'Bắt đầu thảo luận'}
         </Button>
       </footer>

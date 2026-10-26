@@ -6,7 +6,6 @@ import {
   ListChecks,
   MessageSquare,
   Network,
-  Settings2,
   Users,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -17,14 +16,14 @@ export function HomePage() {
     {
       to: '/experts',
       icon: BookOpen,
-      title: 'Tạo chuyên gia AI',
+      title: 'Khám phá chuyên gia AI',
       description:
-        'Định nghĩa chuyên môn và cách tư duy, bổ sung kỹ năng và trao đổi với expert của bạn.',
-      action: 'Khám phá & tạo expert',
+        'Tìm chuyên gia phù hợp, khám phá cách tiếp cận và trao đổi riêng về vấn đề của bạn.',
+      action: 'Khám phá chuyên gia',
       orange: false,
       features: [
-        [Settings2, 'Định nghĩa vai trò và cách đánh giá'],
-        [BookOpen, 'Gắn các kỹ năng chuyên môn'],
+        [Users, 'Tìm chuyên gia theo lĩnh vực'],
+        [BookOpen, 'Khám phá hồ sơ và kỹ năng'],
         [MessageSquare, 'Xem hồ sơ và trao đổi riêng'],
       ] as const,
     },

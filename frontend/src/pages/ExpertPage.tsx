@@ -1,38 +1,52 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { MessageSquare, Pencil } from 'lucide-react';
+import { useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { Markdown } from '@/components/Markdown';
 import { useExpert, useSkills } from '@/hooks/useExperts';
-import { useChatStore } from '@/hooks/useChatStore';
+import { useCase } from '@/hooks/useCases';
+import { useStartExpertChat } from '@/hooks/useStartExpertChat';
+import { StartExpertChatDialog } from '@/components/StartExpertChatDialog';
 import { BackLink, PageHeader } from '@/components/PageHeader';
 import { ExpertMark } from '@/components/ExpertMark';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { ErrorState, Loading } from '@/components/AsyncState';
 export function ExpertPage() {
+  const location = useLocation();
+  const origin = (location.state as { returnTo?: string } | null)?.returnTo;
+  const caseId = origin?.match(/^\/cases\/([^/]+)\/experts$/)?.[1] || '';
+  const pickerOrigin =
+    origin === '/experts/select' || origin?.startsWith('/experts/select?') ? origin : undefined;
+  const returnTo = caseId ? `/cases/${caseId}/experts` : pickerOrigin || '/experts';
   const { id = '' } = useParams(),
     expert = useExpert(id),
     skills = useSkills(),
-    start = useChatStore((s) => s.start),
+    draft = useCase(caseId),
+    start = useStartExpertChat(),
     navigate = useNavigate();
-  if (expert.isPending || skills.isPending) return <Loading />;
-  if (expert.error || skills.error) return <ErrorState error={expert.error || skills.error} />;
+  const [chatOpen, setChatOpen] = useState(false);
+  if (expert.isPending || skills.isPending || (caseId && draft.isPending)) return <Loading />;
+  if (expert.error || skills.error || draft.error)
+    return <ErrorState error={expert.error || skills.error || draft.error} />;
   const item = expert.data;
+  const begin = async () => {
+    if (!draft.data) {
+      setChatOpen(true);
+      return;
+    }
+    try {
+      const { chatId } = await start.mutateAsync({ draft: draft.data, expert: item });
+      navigate(`/chats/${chatId}`);
+    } catch {
+      /* Keep the profile available for retry. */
+    }
+  };
   return (
     <>
-      <BackLink to="/experts">Quay lại danh sách expert</BackLink>
-      <PageHeader
-        eyebrow="HỒ SƠ CHUYÊN MÔN"
-        title={item.role}
-        action={
-          <Link
-            to={`/experts/${id}/edit`}
-            className="inline-flex items-center gap-2 rounded-md border border-n2 bg-n0 px-4 py-2"
-          >
-            <Pencil size={15} />
-            Chỉnh sửa
-          </Link>
-        }
-      />
+      <BackLink to={returnTo}>
+        {caseId || pickerOrigin ? 'Quay lại chọn chuyên gia' : 'Quay lại danh sách expert'}
+      </BackLink>
+      <PageHeader eyebrow="HỒ SƠ CHUYÊN MÔN" title={item.role} />
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
         <div className="space-y-5">
           <Card>
@@ -48,11 +62,13 @@ export function ExpertPage() {
             <Button
               variant="primary"
               className="mt-6"
-              onClick={() => navigate(`/chats/${start({ expert: item })}`)}
+              onClick={() => void begin()}
+              disabled={start.isPending}
             >
-              <MessageSquare size={16} />
-              Trao đổi riêng
+              {start.isPending ? 'Đang mở…' : 'Trao đổi riêng'}
+              <ArrowRight size={16} />
             </Button>
+            {start.error && <ErrorState error={start.error} />}
           </Card>
           <Card>
             <h3 className="section-title">System instructions</h3>
@@ -79,6 +95,15 @@ export function ExpertPage() {
           </p>
         </Card>
       </div>
+      {chatOpen && (
+        <StartExpertChatDialog
+          expert={item}
+          referenceCaseIds={
+            pickerOrigin ? new URLSearchParams(pickerOrigin.split('?')[1]).getAll('reference') : []
+          }
+          onClose={() => setChatOpen(false)}
+        />
+      )}
     </>
   );
 }

@@ -1,11 +1,14 @@
 import { Home } from 'lucide-react';
+import { Suspense } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { PageTransition } from '@/components/transitions/PageTransition';
+import { Loading } from '@/components/AsyncState';
+import { PipelineLoading } from '@/components/PipelineLoading';
 export function AppShell() {
   const { pathname } = useLocation(),
     { data: user } = useAuth();
-  const locked = /\/plan$|\/setup\/[34]$|^\/runs\//.test(pathname);
+  const locked = /\/plan$|\/setup\/[34]$|^\/(runs|chats)\//.test(pathname);
   const expertArea = pathname.startsWith('/experts');
   return (
     <div
@@ -67,7 +70,9 @@ export function AppShell() {
         className={`mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-4 py-5 outline-none sm:px-8 sm:py-6 ${locked ? 'min-h-0' : ''}`}
       >
         <PageTransition key={pathname} className={locked ? 'flex min-h-0 flex-1 flex-col' : ''}>
-          <Outlet />
+          <Suspense fallback={pathname.startsWith('/runs/') ? <PipelineLoading /> : <Loading />}>
+            <Outlet />
+          </Suspense>
         </PageTransition>
       </main>
     </div>

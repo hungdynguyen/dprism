@@ -39,7 +39,7 @@ Preview dùng cổng **5174**, tách biệt với prototype Python ở cổng 41
 - `services/api.ts`: toàn bộ network call, `request<T>`, ApiError, credentials, redirect 401, FormData upload và AbortSignal.
 - `types/`: contract frontend; `utils/`: validation, DAG ordering/layout, trạng thái, tìm kiếm, export và khôi phục bản nháp.
 - Một Zustand store duy nhất cho lịch sử chat, persist có version và giới hạn 50 cuộc trao đổi. Pending request không được persist. Hội thoại chưa có phản hồi sau reload được đánh dấu để thử lại.
-- Case draft là server state; editor giữ state cục bộ, autosave debounce, mutation theo hàng đợi cho từng case và cache có revision. Recovery trong sessionStorage giúp giữ chỉnh sửa khi lưu lỗi. Expert form có recovery riêng, xóa khi Save/Cancel.
+- Case draft là server state; editor giữ state cục bộ, autosave debounce, mutation theo hàng đợi cho từng case và cache có revision. Recovery trong sessionStorage giúp giữ chỉnh sửa khi lưu lỗi. Danh mục expert chỉ đọc; không có form tạo hoặc chỉnh sửa expert trong ứng dụng.
 - `mocks/`: MSW browser/node, fixture và mock execution. Đặt sau API boundary; không được import vào page/component. Trong bản demo, mock database lưu riêng trong localStorage. Backend thật sẽ thay thế phần này.
 - `test/`: toàn bộ unit/component/integration test; network mock ở MSW, không mock module api.ts. Setup dùng cùng fetch/Request/Response/FormData của undici để tránh lệch realm trên Node 24.
 - Tailwind 3.4, token tập trung, Lucide, primitive tự viết, animation registry Framer Motion và reduced motion. Không thêm UI kit, axios, form/schema library hoặc clsx.
@@ -49,15 +49,15 @@ Những lựa chọn có chủ đích so với ví dụ Wiki Maintainer: DAG/arg
 ## Các luồng đã triển khai
 
 1. Welcome: hai lựa chọn, không sidebar; logo và nút Về trang chủ.
-2. Expert: danh sách/tìm kiếm/lĩnh vực → hồ sơ riêng → tạo/chỉnh sửa, xem SKILL.md, gắn skills, giữ form draft. Trao đổi riêng tiếp tục hội thoại; nút Mới tạo hội thoại khác.
-3. Cases: lịch sử bản nháp/phiên chạy, case chia sẻ và trao đổi riêng; popup đặt tên trước khi chọn hình thức.
-4. Ba lựa chọn: template, thảo luận theo chủ đề, trực tiếp với một expert. Thư viện 8 template có tìm kiếm không dấu, lọc, sắp xếp, phân trang, empty state.
-5. Template → review plan ngay. Open discussion → STAR/đầu ra/tài liệu → case tham khảo → thiết kế plan → review. Tạo lại đề xuất là thao tác rõ ràng có xác nhận, không chạy lại khi quay về bước trước.
+2. Expert: danh sách/tìm kiếm/lĩnh vực → hồ sơ chỉ đọc, xem SKILL.md. Hai entry point dùng chung ExpertCard: tên mở hồ sơ; một nút Trao đổi riêng ở cuối thẻ. Không có select mode, radio, thanh xác nhận, nút Mới hay tạo/chỉnh sửa expert. URL chỉnh sửa cũ chuyển về danh sách.
+3. Cases là workspace ngay sau Welcome: ba lựa chọn bắt đầu ở đầu trang, lịch sử bản nháp/phiên chạy, case chia sẻ và trao đổi riêng ở dưới. Chọn cách làm trước khi đặt tên; không còn màn hình chọn hình thức sau khi tạo case.
+4. Dùng template → đặt tên → màn hình chọn template riêng (`/cases/:id/templates`) → review plan. Thư viện 8 template có tìm kiếm không dấu, lọc, sắp xếp, phân trang, empty state. Bản nháp chưa chọn template tiếp tục đúng tại thư viện; quay lại cùng template giữ task đã chỉnh, thay template khác có xác nhận.
+5. Thảo luận theo chủ đề → đặt tên → STAR/đầu ra/tài liệu → case tham khảo → thiết kế plan → review. Tạo lại đề xuất là thao tác rõ ràng có xác nhận, không chạy lại khi quay về bước trước.
 6. Planning: DAG bên trái, task detail phía dưới, thông tin case bên phải. Chỉ hai inspector cuộn; outer viewport được cô lập overflow. Có Fit/zoom/pan, chọn node bằng bàn phím, thêm/xóa/Undo, chỉnh dependencies, expert, tài liệu, số vòng và token budget. Màn hình nhỏ chuyển panel bằng tab.
 7. Validation chặn DAG cycle/missing dependency, task thiếu expert/đầu ra, số vòng và budget không hợp lệ. Plan được cố định sau Start; backend phải kiểm tra lại độc lập.
-8. Chạy: DAG chỉ đọc, polling API, tự chuyển dashboard khi terminal. Mock API tính tiến trình theo đồng hồ, mỗi task 3 giây, tiếp tục khi rời trang/reload. Không có nút điều khiển runtime cho người dùng.
+8. Chạy: DAG chỉ đọc, spinner ở pipeline và task đang xử lý, polling API giữ nguyên DAG/zoom/lựa chọn khi cập nhật hoặc lỗi tạm thời. Loading ban đầu giữ khung panel và thanh điều hướng. Khi terminal, hiện thông báo mở kết quả 700ms, preload dashboard rồi tự chuyển; không thay đổi thời gian thực thi task. Mock API tính tiến trình theo đồng hồ, mỗi task 3 giây, tiếp tục khi rời trang/reload. Không có nút điều khiển runtime cho người dùng.
 9. Kết quả: participants, argument map, ý kiến expert, inspector bằng chứng và bất đồng có cấu trúc. Giữ cả bất đồng khi rating giống nhau. Báo cáo gồm nguồn, upstream brief, full snapshot và trace; xuất JSON/Markdown; chia sẻ/thu hồi toàn bộ case.
-10. Trao đổi một expert: hai entry point, chọn đúng một, markdown, Ctrl+Enter có kiểm tra IME, pending/error/retry/abort và lịch sử riêng. Nội dung chưa có backend lưu hội thoại; chat hiện được giữ trên trình duyệt theo pattern tài liệu. Nếu một case tham chiếu chat không có trên trình duyệt hiện tại, có đường quay lại chọn expert.
+10. Trao đổi một expert: từ danh sách/hồ sơ expert → đặt tên case → chat; từ workspace Cases → chọn Trao đổi riêng → chọn expert → đặt tên case → chat. Case trực tiếp cũ đã có tên có thể vào chat từ thẻ mà không đặt tên lại. Một case có một hội thoại; muốn bắt đầu vấn đề khác với cùng expert thì đặt tên case mới. Màn hình chat một cột, transcript cuộn nội bộ, composer cố định phía dưới; không có panel thông tin, chỉnh sửa hoặc đổi expert. Enter gửi, Shift+Enter xuống dòng, có kiểm tra IME, pending/error/retry/abort và markdown. Lưu case thành công rồi mới tạo hội thoại local; retry không tạo trùng case. Nội dung chưa có backend lưu hội thoại; chat hiện được giữ trên trình duyệt theo pattern tài liệu. Nếu một case tham chiếu chat không có trên trình duyệt hiện tại, có đường quay lại chọn expert.
 
 ## Nối backend thật
 
@@ -74,9 +74,9 @@ Khởi động lại Vite. `VITE_API_URL` rỗng dùng cùng origin và Vite pro
 `types/index.ts` và `services/api.ts` là contract ban đầu để triển khai backend tiếp. Các endpoint:
 
 - `GET /api/users/me`: user + `capabilities.appEnabled`; 401 do API client xử lý tập trung.
-- `GET/POST /api/experts`, `GET/PUT /api/experts/:id`, `GET /api/skills`.
+- Giao diện chỉ dùng `GET /api/experts`, `GET /api/experts/:id`, `GET /api/skills`. Các hàm/handler POST/PUT expert còn giữ tại API boundary để tương thích, không có thao tác tương ứng trên UI; phân quyền phải do backend thực thi.
 - `GET/POST /api/templates`: version và bản sao task/document của template.
-- `GET/POST /api/cases`, `GET/PUT /api/cases/:id`: draft có revision, STAR, output, tasks, tài liệu, references, run/chat link. List trả `runStatus` nếu đã Start.
+- `GET/POST /api/cases`, `GET/PUT /api/cases/:id`: tạo draft nhận `title`, `method` (template/open/direct) và `referenceCaseIds`; draft có revision, STAR, output, tasks, tài liệu, references, run/chat link. List trả `runStatus` nếu đã Start.
 - `POST /api/cases/:id/proposal`: nhận context đã lưu, trả draft với plan đề xuất; không tự chạy.
 - `POST /api/cases/:id/runs`: idempotent theo case; validate và chụp snapshot trước khi chạy. Sau Start, update plan trả 409.
 - `GET /api/runs/:id`: trạng thái, taskStates, activeTaskId, artifacts, expert/skill snapshot, trace và exitReason. Frontend poll 700ms khi RUNNING và dừng khi terminal; có thể đổi interval tại hook khi nối execution service.
@@ -89,6 +89,6 @@ Auth thực, phân quyền theo owner, lưu Lakebase, ingest tài liệu, LangGr
 
 ## Xác minh
 
-Build/type-check và lint được chạy bằng script ở trên. Test bao phủ API boundary, auth gate, name dialog, template shortcut, độc lập draft, single-expert chat, validation DAG, snapshot cố định, tiến trình 3 giây/task, partial exit, same-rating dissent, chia sẻ/thu hồi và phục hồi lỗi lưu/gửi.
+Build/type-check và lint được chạy bằng script ở trên. Test bao phủ API boundary, auth gate, workspace entry, name dialog, template picker/review, độc lập draft, single-expert chat, validation DAG, snapshot cố định, tiến trình 3 giây/task, partial exit, same-rating dissent, chia sẻ/thu hồi và phục hồi lỗi lưu/gửi.
 
 Chrome DevTools được dùng để chạy luồng template thực tế và kiểm tra viewport planning/results 1366×768, cũng như các panel ở kích thước nhỏ. Các quyết định và kiểm tra chi tiết được ghi ở `VERIFICATION.md`.

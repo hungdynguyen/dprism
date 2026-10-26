@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Maximize, Minus, Plus, Users } from 'lucide-react';
+import { LoaderCircle, Maximize, Minus, Plus, Users } from 'lucide-react';
 import type { Task, TaskStatus } from '@/types';
 import { graphLayout } from '@/utils/plan';
 import { isActiveTask, TASK_STATUS } from '@/utils/runStatus';
@@ -220,19 +220,30 @@ export function PlanGraph({
                   }
                 }}
                 aria-pressed={selectedId === task.id}
-                className={`absolute w-[242px] rounded-lg border bg-n0 p-4 text-left shadow-sm ${selectedId === task.id ? 'border-primary ring-1 ring-primary' : 'border-n2'} ${active ? 'bg-tint-3' : ''}`}
+                className={`absolute w-[242px] rounded-lg border bg-n0 p-4 text-left shadow-sm transition-colors duration-200 ${selectedId === task.id ? 'border-primary ring-1 ring-primary' : 'border-n2'} ${active ? 'bg-tint-3' : ''}`}
                 style={{ left: x, top: y }}
               >
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-semibold text-n4">{task.id}</span>
                   <span className="flex items-center gap-1 text-xs text-n4">
+                    {statuses && (
+                      <span className="mr-1 inline-flex h-4 w-4 items-center justify-center text-primary">
+                        {active && (
+                          <LoaderCircle
+                            size={14}
+                            aria-hidden="true"
+                            className="animate-spin motion-reduce:animate-none"
+                          />
+                        )}
+                      </span>
+                    )}
                     <Users size={13} />
                     {task.expertIds.length}
                   </span>
                 </div>
                 <h3 className="text-sm font-semibold leading-5">{task.title}</h3>
                 {status && (
-                  <div className="mt-3">
+                  <div className="mt-3 min-h-7">
                     <Badge tone={TASK_STATUS[status].tone}>{TASK_STATUS[status].label}</Badge>
                   </div>
                 )}

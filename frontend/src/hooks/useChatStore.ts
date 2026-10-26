@@ -5,11 +5,11 @@ import { uid } from '@/utils/format';
 interface ChatStore {
   conversations: Conversation[];
   start: (options: {
+    id?: string;
     expert: Expert;
     title?: string;
     caseId?: string;
     returnTo?: string;
-    forceNew?: boolean;
   }) => string;
   addMessage: (id: string, message: ChatMessage) => void;
   markFailed: (id: string, messageId: string, failed: boolean) => void;
@@ -18,12 +18,12 @@ export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => ({
       conversations: [],
-      start: ({ expert, title, caseId, returnTo = '/experts', forceNew = false }) => {
+      start: ({ id: requestedId, expert, title, caseId, returnTo = '/experts' }) => {
         const existing = get().conversations.find(
-          (c) => c.expert.id === expert.id && c.caseId === (caseId || null),
+          (c) => c.id === requestedId || (!!caseId && c.caseId === caseId),
         );
-        if (!forceNew && existing) return existing.id;
-        const id = uid('chat');
+        if (existing) return existing.id;
+        const id = requestedId || uid('chat');
         const item: Conversation = {
           id,
           title: title || `Trao đổi với ${expert.role}`,

@@ -17,14 +17,15 @@ describe('React user journeys', () => {
   it('names a case before selecting a template and jumps directly to plan review', async () => {
     const user = userEvent.setup();
     renderRoute('/cases');
-    await user.click(await screen.findByRole('button', { name: 'Tạo case' }));
+    await user.click(await screen.findByRole('button', { name: 'Dùng template' }));
     const dialog = await screen.findByRole('dialog');
     await user.type(within(dialog).getByLabelText(/Tên case/), '  Review Alpha  ');
     await user.click(within(dialog).getByRole('button', { name: 'Tiếp tục' }));
     expect(
-      await screen.findByRole('heading', { name: 'Review Alpha', level: 1 }),
+      await screen.findByRole('heading', { name: 'Chọn template', level: 1 }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Trực tiếp trao đổi/ })).toBeInTheDocument();
+    expect(screen.getByText(/Case: Review Alpha/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Trao đổi riêng' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Thẩm định rủi ro hệ thống AI/ }));
     expect(
       await screen.findByRole('heading', { name: 'Review plan & bắt đầu' }),
@@ -32,24 +33,25 @@ describe('React user journeys', () => {
     expect(screen.getByLabelText(/Tên case/)).toHaveValue('Review Alpha');
     expect(screen.queryByRole('heading', { name: 'Mô tả vấn đề' })).not.toBeInTheDocument();
   });
-  it('allows exactly one expert and sends a message through the API adapter', async () => {
+  it('names a new case from the shared expert card and sends through the API adapter', async () => {
     const user = userEvent.setup();
-    renderRoute('/experts/select');
-    const safety = await screen.findByRole('radio', { name: 'AI Safety Expert' });
-    await user.click(safety);
-    await user.click(screen.getByRole('radio', { name: 'Security Expert' }));
-    expect(
-      screen.getAllByRole('radio').filter((r) => (r as HTMLInputElement).checked),
-    ).toHaveLength(1);
-    await user.click(screen.getByRole('button', { name: /Bắt đầu trao đổi/ }));
+    renderRoute('/experts');
+    const chat = await screen.findByRole('button', { name: 'Trao đổi riêng với Security Expert' });
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Tạo expert' })).not.toBeInTheDocument();
+    await user.click(chat);
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('Security Expert');
+    await user.type(within(dialog).getByLabelText(/Tên case/), 'Security review');
+    await user.click(within(dialog).getByRole('button', { name: 'Bắt đầu trao đổi' }));
     await user.type(
       await screen.findByLabelText('Tin nhắn cho expert'),
-      'Cần chuẩn bị bằng chứng nào?',
+      'Cần chuẩn bị bằng chứng nào?{Enter}',
     );
-    await user.click(screen.getByRole('button', { name: 'Gửi tin nhắn' }));
-    await waitFor(() =>
-      expect(screen.getByRole('log')).toHaveTextContent('Phản hồi mô phỏng · Security Expert'),
-    );
+    await waitFor(() => expect(screen.getByRole('log')).toHaveTextContent('Security Expert'));
+    expect(screen.getByRole('heading', { name: 'Security review', level: 1 })).toBeInTheDocument();
+    expect(screen.queryByText('System instructions')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Chọn expert khác' })).not.toBeInTheDocument();
     expect(screen.getByRole('log')).toHaveTextContent('Cần chuẩn bị bằng chứng nào?');
   });
 });
