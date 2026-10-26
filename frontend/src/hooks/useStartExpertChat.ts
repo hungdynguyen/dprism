@@ -24,7 +24,7 @@ export function useStartExpertChat() {
         expert,
         title: saved.title,
         caseId: saved.id,
-        returnTo: '/cases?tab=chats',
+        returnTo: '/cases',
       });
       return { draft: saved, chatId };
     },

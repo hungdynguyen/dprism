@@ -137,10 +137,17 @@ export interface SharedCase {
   id: string;
   title: string;
   owner: string;
+  ownerId: string;
+  visibility: 'public' | 'restricted';
+  recipientIds: string[];
+  domain: string;
+  tags: string[];
+  decisionType: string;
   summary: string;
   publishedAt: string;
   run: Run;
 }
+export type CaseCollection = 'all' | 'received' | 'public';
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';

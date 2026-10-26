@@ -36,7 +36,7 @@ vi.stubGlobal(
     disconnect() {}
   },
 );
-window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+window.matchMedia = (query: string) => ({
   matches: query.includes('reduced-motion'),
   media: query,
   onchange: null,
@@ -45,7 +45,7 @@ window.matchMedia = vi.fn().mockImplementation((query: string) => ({
   addEventListener() {},
   removeEventListener() {},
   dispatchEvent: () => true,
-}));
+});
 Element.prototype.scrollIntoView = vi.fn();
 Element.prototype.scrollTo = vi.fn();
 export const server = setupServer(...handlers);

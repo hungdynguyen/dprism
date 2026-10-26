@@ -2,6 +2,7 @@ import type {
   CaseContext,
   CaseDraft,
   CaseMethod,
+  CaseCollection,
   ChatMessage,
   Expert,
   ExpertInput,
@@ -83,8 +84,8 @@ export const shareRun = ({ id, shared }: { id: string; shared: boolean }) =>
     method: 'PUT',
     body: JSON.stringify({ shared }),
   });
-export const getSharedCases = (signal?: AbortSignal) =>
-  request<SharedCase[]>('/api/shared-cases', { signal });
+export const getSharedCases = (signal?: AbortSignal, collection: CaseCollection = 'all') =>
+  request<SharedCase[]>(`/api/shared-cases?collection=${collection}`, { signal });
 export const getSharedCase = (id: string, signal?: AbortSignal) =>
   request<SharedCase>(`/api/shared-cases/${encodeURIComponent(id)}`, { signal });
 export const uploadDocument = (file: File) => {

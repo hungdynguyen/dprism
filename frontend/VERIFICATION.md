@@ -74,3 +74,13 @@ Các kiểm tra trên xác nhận frontend và API boundary với mock. Chưa x�
 - Khi chạy xong, hiện thông báo chuyển tiếp 700ms, preload chunk kết quả và tự mở dashboard. Không thêm thời gian vào task hoặc sửa logic execution.
 - `npm test`: **27 test pass, 7 file**. Thêm kiểm tra navigation shell khi request đầu còn pending, DOM DAG/selection/zoom qua refetch và API error/recovery, thông báo hoàn tất trước dashboard. Các kiểm tra API dùng MSW; chưa đo lại coverage baseline.
 - Browser 1366×768: khởi chạy plan mẫu từ UI, xác nhận spinner và chuyển kết quả tự động. Lấy tám mẫu DOM qua nhiều lần polling và thay đổi tiến trình 0% → 25%: document giữ height 768, vùng pipeline giữ nguyên vị trí/kích thước trong toàn bộ mẫu.
+
+## Ba bộ sưu tập case và Library
+
+- Gộp case thảo luận và trao đổi riêng vào Case của tôi; join theo caseId/chatId, giữ chat legacy không có server case, cập nhật thời gian theo tin nhắn gần nhất. Không còn tab Trao đổi riêng hoặc Đã chia sẻ.
+- Hai bộ sưu tập còn lại: Case được share với tôi (restricted, recipient hiện tại, owner khác) và Library (public). Query key/list API phân biệt collection; full detail chỉ đọc vẫn mở được theo quyền truy cập tương ứng.
+- Library theo bố cục filter / grid-list / detail panel. Có domain, expert, decision type, time, search, sort, reset và empty state. Detail có STAR, participants, summary, kết quả, quy trình, tài liệu, dùng làm context và mở full case.
+- Mock có 6 public và 2 received; migration giữ draft/run/chat cũ. Publish từ results đưa snapshot vào Library, không vào received. Backend thật còn cần thực thi authorization và quản lý grant.
+- `npm test -- --maxWorkers=2`: **33 test pass, 8 file**. Thêm 6 test cho unified history/dedup/search/resume, collection separation và inaccessible detail 404, library filters/grid-list/documents/context, received return link, time/empty reset và legacy ordering. API test kiểm tra publish xuất hiện đúng collection.
+- Sửa matchMedia polyfill của test thành hàm thường để không bị restoreMocks xóa implementation giữa các test. Giới hạn hai worker khi chạy full suite trên máy hiện tại để tránh timeout khi nhiều jsdom/transform chạy cùng lúc. Không đo lại coverage baseline.
+- Browser 1440×900: kiểm tra screenshot Library, panel detail có footer CTA trong viewport; document không tràn ngang. Mobile 375×812: không tràn ngang, bộ lọc thu gọn, chọn case đưa focus tới detail; detail trong y=24–792, CTA vẫn nhìn thấy. Chuyển received chỉ hiển thị restricted fixtures, không có public case.

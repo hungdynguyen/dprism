@@ -32,6 +32,12 @@ describe('API boundary with MSW', () => {
     expect(finished.status).toBe('COMPLETED');
     await api.shareRun({ id: run.id, shared: true });
     const publicCase = await api.getSharedCase(run.id);
+    expect((await api.getSharedCases(undefined, 'public')).some((item) => item.id === run.id)).toBe(
+      true,
+    );
+    expect(
+      (await api.getSharedCases(undefined, 'received')).some((item) => item.id === run.id),
+    ).toBe(false);
     expect(publicCase.run.plan.tasks).toHaveLength(4);
     expect(publicCase.run.results).toHaveLength(4);
     expect(publicCase.run.experts[0].systemPrompt).toBeTruthy();

@@ -57,7 +57,7 @@ describe('Direct chat entry points', () => {
     expect(conversations).toHaveLength(2);
     expect(new Set(conversations.map((c) => c.caseId)).size).toBe(2);
     expect(await api.getCases()).toHaveLength(2);
-    await user.click(screen.getByRole('link', { name: 'Quay lại danh sách trao đổi' }));
+    await user.click(screen.getByRole('link', { name: 'Quay lại Cases' }));
     await user.click(await screen.findByRole('link', { name: 'First issue' }));
     await screen.findByRole('heading', { name: 'First issue', level: 1 });
     expect(useChatStore.getState().conversations).toHaveLength(2);

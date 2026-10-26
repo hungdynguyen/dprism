@@ -27,8 +27,8 @@ export function ChatPage() {
       <Card>
         <h1 className="text-xl font-semibold">Không tìm thấy cuộc trao đổi</h1>
         <p className="my-3 text-n4">Hội thoại chỉ được lưu trên trình duyệt này.</p>
-        <Link to="/cases?tab=chats" className="text-primary underline">
-          Về danh sách trao đổi
+        <Link to="/cases" className="text-primary underline">
+          Về Case của tôi
         </Link>
       </Card>
     );
@@ -43,8 +43,8 @@ export function ChatPage() {
     <section className="flex min-h-0 flex-1 flex-col">
       <header className="flex shrink-0 items-center gap-3 border-b border-n2 pb-4 sm:gap-5">
         <Link
-          to={conversation.returnTo}
-          aria-label="Quay lại danh sách trao đổi"
+          to="/cases"
+          aria-label="Quay lại Cases"
           className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-n4 hover:bg-n2/40"
         >
           <ArrowLeft size={19} />

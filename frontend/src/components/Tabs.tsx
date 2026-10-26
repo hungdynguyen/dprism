@@ -3,11 +3,13 @@ export function Tabs({
   value,
   onChange,
   label,
+  compact = false,
 }: Readonly<{
   items: { value: string; label: string; count?: number }[];
   value: string;
   onChange: (value: string) => void;
   label: string;
+  compact?: boolean;
 }>) {
   return (
     <div
@@ -36,7 +38,7 @@ export function Tabs({
           aria-selected={value === item.value}
           tabIndex={value === item.value ? 0 : -1}
           onClick={() => onChange(item.value)}
-          className={`flex min-h-11 items-center gap-2 border-b-2 px-4 text-sm ${value === item.value ? 'border-primary font-semibold text-primary' : 'border-transparent text-n4 hover:text-n6'}`}
+          className={`flex items-center gap-2 border-b-2 ${compact ? 'min-h-9 px-2 text-[11px]' : 'min-h-11 px-4 text-sm'} ${value === item.value ? 'border-primary font-semibold text-primary' : 'border-transparent text-n4 hover:text-n6'}`}
         >
           {item.label}
           {item.count !== undefined && (

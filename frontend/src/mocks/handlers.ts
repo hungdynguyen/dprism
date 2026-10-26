@@ -7,7 +7,7 @@ import type {
   PlanDocument,
   PlanTemplate,
 } from '@/types';
-import { blankCase, db, persistMockDatabase } from '@/mocks/database';
+import { blankCase, db, MOCK_USER_ID, persistMockDatabase } from '@/mocks/database';
 import {
   riskTasks,
   referenceDocuments,
@@ -156,6 +156,12 @@ export const handlers = [
         id: run.id,
         title: run.title,
         owner: 'Tran',
+        ownerId: MOCK_USER_ID,
+        visibility: 'public',
+        recipientIds: [],
+        domain: 'Dữ liệu & AI',
+        tags: ['AI', 'Đánh giá'],
+        decisionType: run.plan.method === 'template' ? 'Theo template' : 'Theo chủ đề',
         summary: 'Toàn bộ plan, tài liệu, ý kiến expert và trace.',
         publishedAt: new Date().toISOString(),
         run: snapshot,
@@ -163,9 +169,36 @@ export const handlers = [
     persistMockDatabase();
     return HttpResponse.json(snapshot);
   }),
-  http.get('/api/shared-cases', () => HttpResponse.json(db.shared)),
+  http.get('/api/shared-cases', ({ request }) => {
+    const collection = new URL(request.url).searchParams.get('collection') || 'all';
+    if (!['all', 'received', 'public'].includes(collection))
+      return fail('Bộ sưu tập không hợp lệ.', 400);
+    const accessible = db.shared.filter(
+      (item) =>
+        item.visibility === 'public' ||
+        item.ownerId === MOCK_USER_ID ||
+        item.recipientIds.includes(MOCK_USER_ID),
+    );
+    return HttpResponse.json(
+      accessible.filter((item) =>
+        collection === 'public'
+          ? item.visibility === 'public'
+          : collection === 'received'
+            ? item.visibility === 'restricted' &&
+              item.ownerId !== MOCK_USER_ID &&
+              item.recipientIds.includes(MOCK_USER_ID)
+            : true,
+      ),
+    );
+  }),
   http.get('/api/shared-cases/:id', ({ params }) => {
-    const item = db.shared.find((c) => c.id === params.id);
+    const item = db.shared.find(
+      (c) =>
+        c.id === params.id &&
+        (c.visibility === 'public' ||
+          c.ownerId === MOCK_USER_ID ||
+          c.recipientIds.includes(MOCK_USER_ID)),
+    );
     return item ? HttpResponse.json(item) : fail('Case chưa được chia sẻ hoặc đã thu hồi.');
   }),
   http.post('/api/documents', async ({ request }) => {

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as api from '@/services/api';
-import type { CaseDraft } from '@/types';
+import type { CaseCollection, CaseDraft } from '@/types';
 import { isRunActive } from '@/utils/runStatus';
 export const caseKeys = { all: ['cases'] as const, detail: (id: string) => ['cases', id] as const };
 export function useCases() {
@@ -71,15 +71,15 @@ export function useCreateTemplate() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['templates'] }),
   });
 }
-export function useSharedCases() {
+export function useSharedCases(collection: CaseCollection = 'all') {
   return useQuery({
-    queryKey: ['shared-cases'],
-    queryFn: ({ signal }) => api.getSharedCases(signal),
+    queryKey: ['shared-cases', 'list', collection],
+    queryFn: ({ signal }) => api.getSharedCases(signal, collection),
   });
 }
 export function useSharedCase(id: string) {
   return useQuery({
-    queryKey: ['shared-cases', id],
+    queryKey: ['shared-cases', 'detail', id],
     queryFn: ({ signal }) => api.getSharedCase(id, signal),
     enabled: !!id,
   });

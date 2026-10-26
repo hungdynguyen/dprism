@@ -14,9 +14,11 @@ export function SharedCasePage() {
   const item = query.data;
   return (
     <>
-      <BackLink to="/cases?tab=shared">Quay lại case chia sẻ</BackLink>
+      <BackLink to={item.visibility === 'public' ? '/cases?tab=library' : '/cases?tab=received'}>
+        {item.visibility === 'public' ? 'Quay lại Library' : 'Quay lại case được chia sẻ với tôi'}
+      </BackLink>
       <PageHeader
-        eyebrow={`CHIA SẺ TOÀN BỘ · ${item.owner}`}
+        eyebrow={`${item.visibility === 'public' ? 'CÔNG KHAI TRONG LIBRARY' : 'CHIA SẺ TRỰC TIẾP VỚI BẠN'} · ${item.owner}`}
         title={item.title}
         description={item.summary}
         action={

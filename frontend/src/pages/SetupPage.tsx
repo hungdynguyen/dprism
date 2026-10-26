@@ -92,7 +92,7 @@ function SetupInput({ step }: Readonly<{ step: number }>) {
         description={
           step === 1
             ? 'Mục tiêu và đầu ra rõ ràng giúp các expert làm việc đúng phạm vi.'
-            : 'Chỉ các case đã được chủ sở hữu chia sẻ mới có thể làm tham khảo.'
+            : 'Tham khảo các case công khai hoặc được chia sẻ trực tiếp với bạn.'
         }
         action={
           step === 1 ? (
@@ -181,7 +181,10 @@ function SetupInput({ step }: Readonly<{ step: number }>) {
                 <div className="flex-1">
                   <h2 className="font-semibold">{item.title}</h2>
                   <p className="my-2 text-sm text-n4">{item.summary}</p>
-                  <p className="helper">{item.owner} · Chia sẻ toàn bộ</p>
+                  <p className="helper">
+                    {item.owner} ·{' '}
+                    {item.visibility === 'public' ? 'Công khai' : 'Được chia sẻ với bạn'}
+                  </p>
                 </div>
                 <Link to={`/shared/${item.id}`} className="text-xs font-semibold text-primary">
                   Xem chi tiết

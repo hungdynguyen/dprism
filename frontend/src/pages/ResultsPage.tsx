@@ -25,10 +25,10 @@ export function ResultsPage() {
     if (
       !run.shared &&
       !(await confirm({
-        title: 'Chia sẻ toàn bộ case?',
+        title: 'Công khai case lên Library?',
         message:
-          'Người xem có thể đọc toàn bộ hồ sơ, tài liệu, plan, nhận định expert, bằng chứng và trace đang hiển thị. Bạn có thể thu hồi chia sẻ sau.',
-        confirmLabel: 'Chia sẻ toàn bộ',
+          'Mọi người có thể đọc toàn bộ hồ sơ, tài liệu, plan, nhận định expert, bằng chứng và trace trong Library. Bạn có thể thu hồi công khai sau.',
+        confirmLabel: 'Công khai lên Library',
       }))
     )
       return;
@@ -69,7 +69,7 @@ export function ResultsPage() {
           </Button>
           <Button onClick={() => void share()} disabled={sharing.isPending}>
             <Share2 size={15} />
-            {run.shared ? 'Thu hồi chia sẻ' : 'Chia sẻ'}
+            {run.shared ? 'Thu hồi công khai' : 'Công khai lên Library'}
           </Button>
         </div>
       </header>
