@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* System fonts keep Vietnamese diacritics consistent without external requests. */
+:root {
+  font-family: 'Segoe UI', Inter, Arial, sans-serif;
+  color: #222b36;
+  background: #f5f6f7;
+  --primary: #b51f3d;
+  --surface: #ffffff;
+  --border: #dce0e5;
+}
+@layer base {
+  body {
+    @apply m-0 text-sm antialiased;
+  }
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+  button,
+  a,
+  summary {
+    @apply touch-manipulation;
+  }
+  button:focus-visible,
+  a:focus-visible,
+  summary:focus-visible {
+    @apply outline outline-2 outline-offset-4 outline-info;
+  }
+  input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  textarea,
+  select {
+    @apply w-full min-w-0 rounded-md border border-n2 bg-n0 px-3 py-2.5 text-sm text-n6 outline-none focus:border-info focus:ring-2 focus:ring-info/20;
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    @apply h-4 w-4 shrink-0 accent-primary;
+  }
+  textarea {
+    @apply min-h-24 resize-y leading-7;
+  }
+  input[aria-invalid='true'],
+  textarea[aria-invalid='true'] {
+    @apply border-primary;
+  }
+  p {
+    @apply leading-7;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply break-words;
+  }
+}
+@layer components {
+  .section-title {
+    @apply text-sm font-semibold text-n5;
+  }
+  .helper {
+    @apply text-xs leading-6 text-n4;
+  }
+  .workspace {
+    @apply flex h-full min-h-0 flex-col gap-4;
+  }
+  .workspace-grid {
+    @apply grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px];
+  }
+  .workspace-left {
+    @apply grid min-h-0 grid-rows-1 gap-4 lg:grid-rows-[minmax(160px,1.1fr)_minmax(160px,1fr)];
+  }
+  .inspector {
+    @apply min-h-0 overflow-y-auto overscroll-contain;
+  }
+  .task-panel {
+    @apply flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-n2 bg-n0;
+  }
+  .panel-heading {
+    @apply flex shrink-0 items-center justify-between gap-3 border-b border-n2 px-5 py-3;
+  }
+  .panel-body {
+    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain p-5;
+  }
+  .prose {
+    @apply max-w-none text-sm leading-7 text-n5;
+  }
+  .prose pre {
+    @apply whitespace-pre-wrap break-words bg-n1 text-n5;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
